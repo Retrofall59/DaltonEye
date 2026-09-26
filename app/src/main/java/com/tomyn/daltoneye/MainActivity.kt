@@ -20,6 +20,7 @@ import androidx.camera.camera2.interop.CaptureRequestOptions
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
@@ -122,11 +123,13 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         verifierCalibration()
         gestionnaireUi.post(tickCompteACalibration)
+        gestionnaireUi.post(tickMiseAuPoint)
     }
 
     override fun onPause() {
         super.onPause()
         gestionnaireUi.removeCallbacks(tickCompteACalibration)
+        gestionnaireUi.removeCallbacks(tickMiseAuPoint)
     }
 
     private val tickCompteACalibration: Runnable = object : Runnable {
@@ -207,6 +210,28 @@ class MainActivity : AppCompatActivity() {
             CaptureRequestOptions.Builder()
                 .setCaptureRequestOption(CaptureRequest.CONTROL_AWB_LOCK, true)
                 .build()
+    }
+
+    /**
+     * Force une mise au point continue centree sur le reticule (la ou l'utilisateur pointe la piece),
+     * plutot que de laisser l'autofocus par defaut choisir sa propre zone (souvent l'ensemble de l'image,
+     * ce qui fait la moyenne entre la piece proche et l'arriere-plan, d'ou le flou rapporte sur les
+     * objets tenus de pres). Relancee regulierement pour suivre les changements de piece/distance.
+     */
+    private fun declencherMiseAuPointCentree() {
+        val cam = camera ?: return
+        val point = previewCamera.meteringPointFactory.createPoint(0.5f, 0.5f)
+        val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+            .disableAutoCancel()
+            .build()
+        cam.cameraControl.startFocusAndMetering(action)
+    }
+
+    private val tickMiseAuPoint: Runnable = object : Runnable {
+        override fun run() {
+            declencherMiseAuPointCentree()
+            gestionnaireUi.postDelayed(this, 3000L)
+        }
     }
 
     private fun demarrerCamera() {

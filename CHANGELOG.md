@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7 (build 8)
+
+**Ajout :**
+- Mise au point forcée en continu sur le centre de l'écran (là où se trouve le réticule), relancée toutes les 3 secondes. Corrige le flou rapporté sur les pièces tenues de près : l'autofocus par défaut avait tendance à faire la moyenne entre la pièce et l'arrière-plan au lieu de se concentrer sur ce qui est sous le réticule.
+
 ## v1.6 (build 7)
 
 **Ajout :**
