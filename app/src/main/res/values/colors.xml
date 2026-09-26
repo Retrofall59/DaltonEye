@@ -1,0 +1,31 @@
+<resources>
+    <!-- Palette principale : degrade arc-en-ciel pour l'en-tete, coherent avec le theme "couleur" de l'appli -->
+    <color name="daltoneye_violet">#7C3AED</color>
+    <color name="daltoneye_cyan">#06B6D4</color>
+    <color name="daltoneye_orange">#FF6A13</color>
+    <color name="fond_sombre">#12141A</color>
+    <color name="fond_camera">#0A0B0E</color>
+    <color name="carte_blanc">#FFFFFF</color>
+    <color name="texte_principal">#1A2E2C</color>
+    <color name="texte_secondaire">#5C6E6C</color>
+    <color name="texte_clair">#FFFFFF</color>
+    <color name="bordure_legere">#D9E2E1</color>
+    <color name="accent">#06B6D4</color>
+    <color name="attention">#FF6A13</color>
+
+    <!-- Couleurs de reference des 14 familles, pour teinter les elements d'interface -->
+    <color name="famille_rouge">#E51C1C</color>
+    <color name="famille_orange">#FF8A00</color>
+    <color name="famille_jaune">#F5E400</color>
+    <color name="famille_vert">#1FA83C</color>
+    <color name="famille_cyan">#00B8D9</color>
+    <color name="famille_bleu">#1449E0</color>
+    <color name="famille_violet">#6A1CC7</color>
+    <color name="famille_magenta">#D6008F</color>
+    <color name="famille_rose">#F27EB6</color>
+    <color name="famille_marron">#6B3F1D</color>
+    <color name="famille_noir">#0A0A0A</color>
+    <color name="famille_blanc">#F5F5F5</color>
+    <color name="famille_gris">#9A9A9A</color>
+    <color name="famille_transparent">#C9C9C9</color>
+</resources>
