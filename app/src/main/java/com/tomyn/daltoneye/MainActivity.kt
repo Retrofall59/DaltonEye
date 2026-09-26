@@ -373,7 +373,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Conversion YUV -> RGB simplifiee, moyennee sur un carre central d'environ 10% de la largeur/hauteur
+     * Conversion YUV -> RGB simplifiee, moyennee sur un carre central d'environ 5% de la largeur/hauteur
      * de l'image (suffisant pour capter la couleur du plastique tenu devant la camera, sans etre
      * perturbe par le fond autour).
      */
@@ -384,7 +384,7 @@ class MainActivity : AppCompatActivity() {
         val planU = image.planes[1]
         val planV = image.planes[2]
 
-        val tailleZone = (minOf(largeur, hauteur) * 0.10).toInt().coerceAtLeast(4)
+        val tailleZone = (minOf(largeur, hauteur) * 0.05).toInt().coerceAtLeast(4)
         val centreX = largeur / 2
         val centreY = hauteur / 2
 

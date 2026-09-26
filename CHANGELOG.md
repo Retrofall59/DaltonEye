@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.14 (build 15)
+
+**Ajustement :**
+- Zone d'analyse réduite de 10% à 5% de l'image, et réticule visuel réduit en conséquence (90dp → 45dp) pour mieux correspondre à ce qui est réellement mesuré. Corrige les petites chutes (brims, jupes d'adhérence) où la zone précédente, trop grande, mélangeait la couleur de la pièce avec le fond autour. Sur une pièce minuscule, il peut rester nécessaire de rapprocher le téléphone pour bien remplir le réticule.
+
 ## v1.13 (build 14)
 
 **Correctif majeur : calibration en deux points (blanc + noir).**

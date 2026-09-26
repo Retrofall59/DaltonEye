@@ -86,8 +86,8 @@
     <!-- Reticule colore au centre de l'ecran pour indiquer la zone analysee -->
     <View
         android:id="@+id/reticule"
-        android:layout_width="90dp"
-        android:layout_height="90dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:background="@drawable/reticule_zone"
         app:layout_constraintTop_toTopOf="@id/previewCamera"
         app:layout_constraintBottom_toBottomOf="@id/previewCamera"
