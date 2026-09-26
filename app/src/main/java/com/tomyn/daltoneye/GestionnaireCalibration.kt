@@ -10,9 +10,12 @@ class GestionnaireCalibration {
     companion object {
         const val DELAI_CALIBRATION_MS = 60 * 60 * 1000L // 1 heure
         // Cible neutre : ce que devrait mesurer la camera sur un blanc/gris parfaitement neutre.
-        const val CIBLE_R = 200
-        const val CIBLE_G = 200
-        const val CIBLE_B = 200
+        // Choisie proche de la reference "Blanc" (F5F5F5) pour qu'apres calibration sur une feuille
+        // blanche, celle-ci soit bien classee "Blanc" et non "Transparent" (bug corrige : 200 tombait
+        // presque exactement sur la reference "Transparent" C9C9C9, d'ou la confusion).
+        const val CIBLE_R = 240
+        const val CIBLE_G = 240
+        const val CIBLE_B = 240
     }
 
     private var facteurR = 1.0

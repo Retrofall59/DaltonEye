@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1 (build 2)
+
+**Correctif :**
+- La calibration sur blanc forçait mathématiquement la surface calibrée à être classée "Transparent" plutôt que "Blanc" : la valeur cible de calibration (200,200,200) tombait presque exactement sur la référence de la famille "Transparent" (C9C9C9). La cible est maintenant à 240,240,240, proche de la référence "Blanc" (F5F5F5).
+
 ## v1.0 (build 1)
 
 Première version.
