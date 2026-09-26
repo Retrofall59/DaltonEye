@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.12 (build 13)
+
+**Correctif :**
+- Ajout d'un garde-fou pour les couleurs quasi neutres (R, G, B très proches) : elles sont maintenant classées directement en Noir/Gris/Blanc selon leur clarté, sans passer par la comparaison habituelle avec les 15 familles. Corrige un vrai bug trouvé en testant les 201 couleurs officielles du nuancier Bambu Lab : des gris parfaitement neutres (ex. #515151) étaient classés à tort "Marron", et certains gris légèrement bleutés (ex. #5F6367) étaient classés "Violet". Vérifié : aucune régression sur les cas déjà validés (bleu, violet, cyan, magenta, rose, beige, marron, etc.).
+- Note méthode : un remplacement complet des 15 références par la moyenne du nuancier Bambu a été testé puis écarté — il corrigeait certains cas mais en cassait d'autres (notamment le Cyan et le Violet officiels de Bambu), donc pas retenu. Le nuancier des 201 couleurs Bambu reste un bon outil de diagnostic pour de futurs ajustements ciblés.
+
+## v1.11 (build 12)
+
+**Correctif :**
+- Référence "Violet" recalée de #6A1CC7 (violet profond, très peu de vert) vers #6A78C7. Cas identifié via un test Anycubic : le hex officiel du fabricant pour sa couleur "Purple" (#6A6DCD) était classé à tort "Bleu" par l'appli. Ma référence Violet était trop pure/saturée pour représenter les violets-bleutés courants ("periwinkle", "slate blue") que plusieurs fabricants nomment "Purple". Vérifié sur un jeu de cas de non-régression (bleus vifs réels, cyans, magenta, rose, et les 9 autres familles) : rien d'autre n'est affecté. Point noté en passant : un violet théorique très spécifique (rouge=bleu, vert nul, type "Purple" web #800080) penche maintenant plutôt vers Magenta — teinte à la frontière naturelle entre les deux, pas un vrai produit de l'inventaire de Tomyn.
+
 ## v1.10 (build 11)
 
 **Ajout :**

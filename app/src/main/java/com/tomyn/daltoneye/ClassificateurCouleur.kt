@@ -27,7 +27,7 @@ object ClassificateurCouleur {
         FamilleCouleur("Vert", "1FA83C"),
         FamilleCouleur("Cyan", "00B8D9"),
         FamilleCouleur("Bleu", "0D6EFD"),
-        FamilleCouleur("Violet", "6A1CC7"),
+        FamilleCouleur("Violet", "6A78C7"),
         FamilleCouleur("Magenta", "D6008F"),
         FamilleCouleur("Rose", "F27EB6"),
         FamilleCouleur("Beige", "D8C4A0"),
@@ -43,6 +43,21 @@ object ClassificateurCouleur {
      * @return la famille dont la reference est perceptuellement la plus proche.
      */
     fun classifier(r: Int, g: Int, b: Int): FamilleCouleur {
+        // Cas special : couleur quasi neutre (rouge, vert, bleu tres proches entre eux).
+        // Sans ce garde-fou, un gris pur peut se retrouver "le moins loin" d'une couleur
+        // saturee (Marron, Violet...) a cause de la formule de distance, alors qu'un vrai
+        // gris ne devrait jamais etre confondu avec une teinte vive. Verifie sur le nuancier
+        // complet Bambu (201 couleurs officielles) : corrige les gris purs qui partaient a
+        // tort en Marron.
+        val ecart = maxOf(r, g, b) - minOf(r, g, b)
+        if (ecart <= 20) {
+            val moyenne = (r + g + b) / 3
+            return when {
+                moyenne < 60 -> familles.first { it.nom == "Noir" }
+                moyenne < 190 -> familles.first { it.nom == "Gris / Argenté" }
+                else -> familles.first { it.nom == "Blanc" }
+            }
+        }
         val hexCapte = String.format("%02X%02X%02X", r, g, b)
         val labCapte = versLab(hexCapte)
         var meilleure = familles[0]
