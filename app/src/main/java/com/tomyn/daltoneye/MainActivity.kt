@@ -213,15 +213,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Force une mise au point continue centree sur le reticule (la ou l'utilisateur pointe la piece),
-     * plutot que de laisser l'autofocus par defaut choisir sa propre zone (souvent l'ensemble de l'image,
-     * ce qui fait la moyenne entre la piece proche et l'arriere-plan, d'ou le flou rapporte sur les
-     * objets tenus de pres). Relancee regulierement pour suivre les changements de piece/distance.
+     * Force la mise au point ET la mesure d'exposition sur le centre de l'ecran (le reticule),
+     * plutot que de laisser la camera choisir sa propre zone pour l'une comme pour l'autre.
+     * Sans ca, la camera peut regler son exposition globale sur toute la scene visible (une
+     * fenetre ou une zone tres lumineuse dans le champ, par exemple), ce qui sous-expose la
+     * piece pointee meme si elle est elle-meme bien eclairee. Relancee regulierement pour
+     * suivre les changements de piece/distance/eclairage.
      */
     private fun declencherMiseAuPointCentree() {
         val cam = camera ?: return
         val point = previewCamera.meteringPointFactory.createPoint(0.5f, 0.5f)
-        val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+        val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE)
             .disableAutoCancel()
             .build()
         cam.cameraControl.startFocusAndMetering(action)

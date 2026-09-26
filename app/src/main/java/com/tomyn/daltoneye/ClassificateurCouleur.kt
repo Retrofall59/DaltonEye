@@ -26,7 +26,7 @@ object ClassificateurCouleur {
         FamilleCouleur("Jaune", "F5E400"),
         FamilleCouleur("Vert", "1FA83C"),
         FamilleCouleur("Cyan", "00B8D9"),
-        FamilleCouleur("Bleu", "1449E0"),
+        FamilleCouleur("Bleu", "0D6EFD"),
         FamilleCouleur("Violet", "6A1CC7"),
         FamilleCouleur("Magenta", "D6008F"),
         FamilleCouleur("Rose", "F27EB6"),

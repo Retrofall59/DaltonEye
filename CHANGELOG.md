@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.9 (build 10)
+
+**Correctif :**
+- La mesure d'exposition (luminosité) était basée sur toute la scène visible par la caméra, pas sur la zone du réticule. Une zone lumineuse dans le champ (fenêtre, carton clair, etc.) pouvait faire sous-exposer la pièce visée même si elle était elle-même bien éclairée — cas identifié via un test Anycubic où le hex capté était deux fois plus sombre que le hex officiel du fabricant, faisant basculer un vrai "Bleu" en "Violet". L'exposition est maintenant verrouillée sur le centre de l'écran (réticule), en même temps que la mise au point (v1.7), et relancée régulièrement.
+
+## v1.8 (build 9)
+
+**Correctif :**
+- Référence "Bleu" recalée de #1449E0 (bleu profond/marine) vers #0D6EFD (bleu vif courant), à partir d'un cas réel remonté par Tomyn (#0992F2, une pince bleue classée à tort "Cyan"). L'ancienne référence était trop sombre/pure pour représenter les bleus vifs courants (type "bleu web", DodgerBlue), qui basculaient à tort côté Cyan. Vérifié sur un jeu de cas de non-régression (bleus profonds, cyans et turquoises réels, toutes les autres familles) : rien d'autre n'est affecté.
+
 ## v1.7 (build 8)
 
 **Ajout :**
