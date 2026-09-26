@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2 (build 3)
+
+**Ajout :**
+- Nouvelle famille "Beige" (15e famille), pour distinguer les teintes beiges/crème du blanc. Attention : le beige étant une teinte proche du blanc (peu saturée), la distinction reste plus sensible aux variations d'éclairage que les autres familles ; à surveiller à l'usage.
+
 ## v1.1 (build 2)
 
 **Correctif :**
