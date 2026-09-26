@@ -34,6 +34,13 @@ class GestionnaireCalibration {
     fun calibrationNecessaire(maintenant: Long): Boolean =
         dateDerniereCalibration == 0L || (maintenant - dateDerniereCalibration) >= DELAI_CALIBRATION_MS
 
+    /** Temps restant avant la prochaine calibration obligatoire, en millisecondes (0 si deja due). */
+    fun tempsRestantMs(maintenant: Long): Long {
+        if (dateDerniereCalibration == 0L) return 0L
+        val restant = DELAI_CALIBRATION_MS - (maintenant - dateDerniereCalibration)
+        return if (restant > 0L) restant else 0L
+    }
+
     /** Applique la correction de calibration a une couleur brute captee par la camera. */
     fun corriger(r: Int, g: Int, b: Int): Triple<Int, Int, Int> {
         fun ajuste(valeur: Int, facteur: Double): Int =

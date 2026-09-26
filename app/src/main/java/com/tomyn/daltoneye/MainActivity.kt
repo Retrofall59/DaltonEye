@@ -4,11 +4,21 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.hardware.camera2.CaptureRequest
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.camera2.interop.Camera2CameraControl
+import androidx.camera.camera2.interop.CaptureRequestOptions
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -18,6 +28,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.nio.ByteBuffer
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -37,12 +48,26 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ecranCalibration: android.view.View
     private lateinit var boutonCalibrer: Button
     private lateinit var boutonCalibrerManuel: android.widget.ImageButton
+    private lateinit var texteCompteACalibration: TextView
+    private lateinit var badgeFige: TextView
 
     private lateinit var executeurCamera: ExecutorService
     private val gestionnaireCalibration = GestionnaireCalibration()
+    private val gestionnaireUi = Handler(Looper.getMainLooper())
+    private var vibreur: Vibrator? = null
+    private var camera: Camera? = null
 
     // Derniere couleur brute captee (avant correction calibration), utilisee quand on appuie sur "Calibrer".
     @Volatile private var derniereCouleurBrute: Triple<Int, Int, Int>? = null
+
+    // Figeage temporaire de l'affichage (appui long sur l'ecran), pour lire tranquillement un resultat.
+    @Volatile private var affichageFige = false
+
+    // Suivi de la stabilite de la lecture, pour ne vibrer qu'une fois par stabilisation.
+    private var derniereFamilleVue: String? = null
+    private var comptageStabilite = 0
+    private var dejaVibrePourCetteStabilite = false
+    private val SEUIL_FRAMES_STABLE = 8
 
     private val demandePermissionCamera = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
@@ -65,9 +90,20 @@ class MainActivity : AppCompatActivity() {
         ecranCalibration = findViewById(R.id.ecranCalibration)
         boutonCalibrer = ecranCalibration.findViewById(R.id.boutonCalibrer)
         boutonCalibrerManuel = findViewById(R.id.boutonCalibrerManuel)
+        texteCompteACalibration = findViewById(R.id.texteCompteACalibration)
+        badgeFige = findViewById(R.id.badgeFige)
 
         boutonCalibrer.setOnClickListener { validerCalibration() }
         boutonCalibrerManuel.setOnClickListener { ecranCalibration.visibility = android.view.View.VISIBLE }
+
+        // Appui long sur l'ecran camera : fige l'affichage 3 secondes le temps de bien lire le resultat.
+        previewCamera.setOnLongClickListener {
+            figerAffichage()
+            true
+        }
+
+        @Suppress("DEPRECATION")
+        vibreur = getSystemService(VIBRATOR_SERVICE) as? Vibrator
 
         executeurCamera = Executors.newSingleThreadExecutor()
 
@@ -83,6 +119,43 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         verifierCalibration()
+        gestionnaireUi.post(tickCompteACalibration)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        gestionnaireUi.removeCallbacks(tickCompteACalibration)
+    }
+
+    private val tickCompteACalibration: Runnable = object : Runnable {
+        override fun run() {
+            val restantMs = gestionnaireCalibration.tempsRestantMs(System.currentTimeMillis())
+            if (ecranCalibration.visibility == android.view.View.VISIBLE) {
+                texteCompteACalibration.text = ""
+            } else {
+                val minutes = (restantMs / 60000L).toInt()
+                val secondes = ((restantMs % 60000L) / 1000L).toInt()
+                texteCompteACalibration.text = String.format(Locale.FRANCE, "%02d:%02d", minutes, secondes)
+            }
+            gestionnaireUi.postDelayed(this, 1000L)
+        }
+    }
+
+    /** Fige l'affichage du resultat pendant 3 secondes, pour lire tranquillement sans que ca change sous les yeux. */
+    private fun figerAffichage() {
+        affichageFige = true
+        badgeFige.visibility = android.view.View.VISIBLE
+        gestionnaireUi.postDelayed({
+            affichageFige = false
+            badgeFige.visibility = android.view.View.GONE
+        }, 3000L)
+    }
+
+    private fun vibrerCourt() {
+        val v = vibreur ?: return
+        if (v.hasVibrator()) {
+            v.vibrate(VibrationEffect.createOneShot(50L, VibrationEffect.DEFAULT_AMPLITUDE))
+        }
     }
 
     private fun verifierCalibration() {
@@ -91,14 +164,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Sequence de calibration : deverrouille d'abord la balance des blancs pour laisser la camera
+     * re-converger librement sur ce qui est vise (le blanc de reference), attend un court instant
+     * de convergence, capture une lecture fraiche, calcule la correction logicielle, PUIS verrouille
+     * la balance des blancs au niveau materiel pour qu'elle ne redérive plus selon ce qui apparait
+     * ensuite dans le champ (fond colore, etc.) jusqu'a la prochaine calibration.
+     */
     private fun validerCalibration() {
-        val brute = derniereCouleurBrute
-        if (brute == null) {
-            Toast.makeText(this, "Pointe d'abord la caméra vers le blanc de référence", Toast.LENGTH_SHORT).show()
-            return
-        }
-        gestionnaireCalibration.calibrerSur(brute.first, brute.second, brute.third, System.currentTimeMillis())
-        ecranCalibration.visibility = android.view.View.GONE
+        deverrouillerBalanceDesBlancs()
+        boutonCalibrer.isEnabled = false
+        boutonCalibrer.text = "Calibration en cours…"
+        gestionnaireUi.postDelayed({
+            val brute = derniereCouleurBrute
+            if (brute == null) {
+                Toast.makeText(this, "Pointe d'abord la caméra vers le blanc de référence", Toast.LENGTH_SHORT).show()
+            } else {
+                gestionnaireCalibration.calibrerSur(brute.first, brute.second, brute.third, System.currentTimeMillis())
+                verrouillerBalanceDesBlancs()
+                ecranCalibration.visibility = android.view.View.GONE
+            }
+            boutonCalibrer.isEnabled = true
+            boutonCalibrer.text = "Calibrer sur ce blanc"
+        }, 400L)
+    }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun deverrouillerBalanceDesBlancs() {
+        val cam = camera ?: return
+        Camera2CameraControl.from(cam.cameraControl).captureRequestOptions =
+            CaptureRequestOptions.Builder()
+                .setCaptureRequestOption(CaptureRequest.CONTROL_AWB_LOCK, false)
+                .build()
+    }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun verrouillerBalanceDesBlancs() {
+        val cam = camera ?: return
+        Camera2CameraControl.from(cam.cameraControl).captureRequestOptions =
+            CaptureRequestOptions.Builder()
+                .setCaptureRequestOption(CaptureRequest.CONTROL_AWB_LOCK, true)
+                .build()
     }
 
     private fun demarrerCamera() {
@@ -121,7 +227,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, selecteurCamera, preview, analyseImage)
+                camera = cameraProvider.bindToLifecycle(this, selecteurCamera, preview, analyseImage)
             } catch (e: Exception) {
                 Toast.makeText(this, "Impossible de démarrer la caméra : ${e.message}", Toast.LENGTH_LONG).show()
             }
@@ -139,8 +245,26 @@ class MainActivity : AppCompatActivity() {
             val (r, g, b) = couleurMoyenneZoneCentrale(image)
             derniereCouleurBrute = Triple(r, g, b)
 
+            // Affichage fige (appui long) : on garde la derniere couleur brute a jour pour la calibration,
+            // mais on ne touche pas au resultat affiche ni au suivi de stabilite pendant le gel.
+            if (affichageFige) return
+
             val corrige = gestionnaireCalibration.corriger(r, g, b)
             val famille = ClassificateurCouleur.classifier(corrige.first, corrige.second, corrige.third)
+
+            // Suivi de stabilite : vibration courte une seule fois quand la meme famille tient
+            // sur plusieurs images d'affilee, pas a chaque frame.
+            if (famille.nom == derniereFamilleVue) {
+                comptageStabilite++
+            } else {
+                derniereFamilleVue = famille.nom
+                comptageStabilite = 1
+                dejaVibrePourCetteStabilite = false
+            }
+            if (comptageStabilite >= SEUIL_FRAMES_STABLE && !dejaVibrePourCetteStabilite) {
+                dejaVibrePourCetteStabilite = true
+                runOnUiThread { vibrerCourt() }
+            }
 
             runOnUiThread {
                 // Teinte le carre arrondi sans perdre ses coins/bordure (mutation du GradientDrawable)

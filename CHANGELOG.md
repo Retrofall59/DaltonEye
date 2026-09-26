@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.5 (build 6)
+
+**Correctif majeur :**
+- La balance des blancs de la caméra se réajustait automatiquement selon tout ce qui apparaît dans le champ (fond marron, etc.), ce qui faussait les couleurs même après une calibration correcte sur blanc — poser une pièce sur un fond marron donnait un résultat faux même si la calibration avait été bien faite sur une feuille blanche juste avant.
+- La calibration verrouille maintenant la balance des blancs au niveau matériel (Camera2) juste après avoir capturé la référence blanche : la séquence est déverrouiller → laisser la caméra reconverger sur le blanc pointé → capturer → verrouiller. La balance ne bouge plus ensuite tant qu'on n'a pas recalibré (heure suivante ou bouton manuel). Aucun changement sur la fréquence de calibration elle-même.
+
+## v1.4 (build 5)
+
+**Ajouts :**
+- Compte à rebours avant la prochaine calibration obligatoire, affiché en permanence dans l'en-tête (format mm:ss).
+- Appui long sur l'écran caméra : fige l'affichage du résultat pendant 3 secondes (badge "Figé" visible), pratique le temps d'ajuster la position du plastique sans que le résultat change sous les yeux.
+- Vibration courte quand la même couleur est détectée sur plusieurs images d'affilée (lecture stable) : une seule vibration par stabilisation, pas de répétition tant que la couleur ne change pas.
+
 ## v1.3 (build 4)
 
 **Ajout :**
