@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6 (build 7)
+
+**Ajout :**
+- Le code hex de la couleur captée (après correction de calibration) s'affiche maintenant en petit à côté du nom de la famille. Objectif : en cas de mauvaise classification (ex. un bleu classé "Cyan"), pouvoir donner le hex exact plutôt que d'estimer à l'œil, pour corriger précisément les références de couleur avec de vraies données.
+
 ## v1.5 (build 6)
 
 **Correctif majeur :**

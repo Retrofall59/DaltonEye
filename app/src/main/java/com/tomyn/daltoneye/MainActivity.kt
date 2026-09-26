@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var previewCamera: PreviewView
     private lateinit var carreCouleurCaptee: android.view.View
     private lateinit var nomFamilleCouleur: TextView
+    private lateinit var texteHexCapte: TextView
     private lateinit var barreAccentResultat: android.view.View
     private lateinit var ecranCalibration: android.view.View
     private lateinit var boutonCalibrer: Button
@@ -86,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         previewCamera = findViewById(R.id.previewCamera)
         carreCouleurCaptee = findViewById(R.id.carreCouleurCaptee)
         nomFamilleCouleur = findViewById(R.id.nomFamilleCouleur)
+        texteHexCapte = findViewById(R.id.texteHexCapte)
         barreAccentResultat = findViewById(R.id.barreAccentResultat)
         ecranCalibration = findViewById(R.id.ecranCalibration)
         boutonCalibrer = ecranCalibration.findViewById(R.id.boutonCalibrer)
@@ -271,6 +273,7 @@ class MainActivity : AppCompatActivity() {
                 (carreCouleurCaptee.background as? GradientDrawable)?.setColor(Color.rgb(r, g, b))
                 if (ecranCalibration.visibility != android.view.View.VISIBLE) {
                     nomFamilleCouleur.text = famille.nom
+                    texteHexCapte.text = String.format("#%02X%02X%02X", corrige.first, corrige.second, corrige.third)
                     barreAccentResultat.setBackgroundColor(Color.parseColor("#" + famille.hexReference))
                 }
             }
