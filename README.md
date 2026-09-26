@@ -17,10 +17,11 @@ Volontairement peu nombreuses et larges (pas de nuances fines type "rouge bordea
 
 ## Calibration
 
-L'éclairage d'un atelier change au fil de la journée (lumière naturelle, lumière artificielle le soir), ce qui peut décaler la perception des couleurs par la caméra. Pour compenser :
+L'éclairage d'un atelier change au fil de la journée (lumière naturelle, lumière artificielle le soir), ce qui peut décaler la perception des couleurs par la caméra. Pour compenser, la calibration se fait en **deux points** :
 
 - Au lancement et **toutes les heures** (le délai court en continu tant que l'appli est ouverte, même en pleine session), un écran de calibration bloquant s'affiche.
-- Pointe la caméra vers une feuille blanche ou un objet neutre, appuie sur "Calibrer sur ce blanc".
+- **Étape 1 — le blanc** : pointe la caméra vers une feuille blanche ou un objet neutre, appuie sur "Calibrer sur ce blanc". Corrige le déséquilibre de teinte proportionnel dû à l'éclairage.
+- **Étape 2 — le noir** : pointe la caméra vers une zone bien noire (tissu noir, tiroir fermé...), appuie sur "Calibrer sur ce noir". Corrige un léger voile de teinte qui reste invisible sur le blanc mais fausse les couleurs sombres (un objet noir classé "Marron", par exemple).
 - L'analyse reprend normalement pour l'heure suivante.
 
 ## Distribution

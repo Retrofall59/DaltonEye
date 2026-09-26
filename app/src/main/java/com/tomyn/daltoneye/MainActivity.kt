@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var barreAccentResultat: android.view.View
     private lateinit var ecranCalibration: android.view.View
     private lateinit var boutonCalibrer: Button
+    private lateinit var titreCalibration: TextView
+    private lateinit var messageCalibration: TextView
     private lateinit var boutonCalibrerManuel: android.widget.ImageButton
     private lateinit var boutonFlash: android.widget.ImageButton
     private lateinit var texteCompteACalibration: TextView
@@ -95,6 +97,8 @@ class MainActivity : AppCompatActivity() {
         barreAccentResultat = findViewById(R.id.barreAccentResultat)
         ecranCalibration = findViewById(R.id.ecranCalibration)
         boutonCalibrer = ecranCalibration.findViewById(R.id.boutonCalibrer)
+        titreCalibration = ecranCalibration.findViewById(R.id.titreCalibration)
+        messageCalibration = ecranCalibration.findViewById(R.id.messageCalibration)
         boutonCalibrerManuel = findViewById(R.id.boutonCalibrerManuel)
         boutonFlash = findViewById(R.id.boutonFlash)
 
@@ -103,7 +107,10 @@ class MainActivity : AppCompatActivity() {
         badgeFige = findViewById(R.id.badgeFige)
 
         boutonCalibrer.setOnClickListener { validerCalibration() }
-        boutonCalibrerManuel.setOnClickListener { ecranCalibration.visibility = android.view.View.VISIBLE }
+        boutonCalibrerManuel.setOnClickListener {
+            afficherEtapeCalibration()
+            ecranCalibration.visibility = android.view.View.VISIBLE
+        }
 
         // Appui long sur l'ecran camera : fige l'affichage 3 secondes le temps de bien lire le resultat.
         previewCamera.setOnLongClickListener {
@@ -176,18 +183,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun verifierCalibration() {
         if (gestionnaireCalibration.calibrationNecessaire(System.currentTimeMillis())) {
+            afficherEtapeCalibration()
             ecranCalibration.visibility = android.view.View.VISIBLE
         }
     }
 
     /**
-     * Sequence de calibration : deverrouille d'abord la balance des blancs pour laisser la camera
-     * re-converger librement sur ce qui est vise (le blanc de reference), attend un court instant
-     * de convergence, capture une lecture fraiche, calcule la correction logicielle, PUIS verrouille
-     * la balance des blancs au niveau materiel pour qu'elle ne redérive plus selon ce qui apparait
-     * ensuite dans le champ (fond colore, etc.) jusqu'a la prochaine calibration.
+     * Calibration en deux etapes. Etape blanc : deverrouille la balance des blancs, laisse la
+     * camera re-converger sur ce qui est vise, capture, verrouille la balance des blancs (comme
+     * avant). Etape noir : capture directe (la balance des blancs reste verrouillee, pas de
+     * nouvelle convergence sur une scene sombre qui donnerait un mauvais reglage materiel),
+     * calcule la correction finale (voile + echelle) et termine la calibration.
      */
     private fun validerCalibration() {
+        when (gestionnaireCalibration.etapeActuelle()) {
+            GestionnaireCalibration.Etape.POINT_BLANC -> validerPointBlanc()
+            GestionnaireCalibration.Etape.POINT_NOIR -> validerPointNoir()
+        }
+    }
+
+    private fun validerPointBlanc() {
         deverrouillerBalanceDesBlancs()
         boutonCalibrer.isEnabled = false
         boutonCalibrer.text = "Calibration en cours…"
@@ -196,13 +211,38 @@ class MainActivity : AppCompatActivity() {
             if (brute == null) {
                 Toast.makeText(this, "Pointe d'abord la caméra vers le blanc de référence", Toast.LENGTH_SHORT).show()
             } else {
-                gestionnaireCalibration.calibrerSur(brute.first, brute.second, brute.third, System.currentTimeMillis())
+                gestionnaireCalibration.capturerPointBlanc(brute.first, brute.second, brute.third)
                 verrouillerBalanceDesBlancs()
-                ecranCalibration.visibility = android.view.View.GONE
+                afficherEtapeCalibration()
             }
             boutonCalibrer.isEnabled = true
-            boutonCalibrer.text = "Calibrer sur ce blanc"
         }, 400L)
+    }
+
+    private fun validerPointNoir() {
+        val brute = derniereCouleurBrute
+        if (brute == null) {
+            Toast.makeText(this, "Pointe d'abord la caméra vers une zone noire", Toast.LENGTH_SHORT).show()
+            return
+        }
+        gestionnaireCalibration.capturerPointNoir(brute.first, brute.second, brute.third, System.currentTimeMillis())
+        ecranCalibration.visibility = android.view.View.GONE
+    }
+
+    /** Met a jour le texte de l'ecran de calibration selon l'etape en cours (blanc ou noir). */
+    private fun afficherEtapeCalibration() {
+        when (gestionnaireCalibration.etapeActuelle()) {
+            GestionnaireCalibration.Etape.POINT_BLANC -> {
+                titreCalibration.text = "Calibration nécessaire"
+                messageCalibration.text = "Pointe l'appareil vers une feuille blanche ou un objet neutre, bien éclairé, puis valide."
+                boutonCalibrer.text = "Calibrer sur ce blanc"
+            }
+            GestionnaireCalibration.Etape.POINT_NOIR -> {
+                titreCalibration.text = "Étape 2 : le noir"
+                messageCalibration.text = "Pointe maintenant l'appareil vers une zone bien noire (tissu noir, tiroir fermé...), puis valide."
+                boutonCalibrer.text = "Calibrer sur ce noir"
+            }
+        }
     }
 
     @OptIn(ExperimentalCamera2Interop::class)

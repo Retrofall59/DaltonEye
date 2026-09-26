@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.13 (build 14)
+
+**Correctif majeur : calibration en deux points (blanc + noir).**
+- Jusqu'ici la calibration ne corrigeait qu'un déséquilibre proportionnel (calé sur le blanc). Un léger "voile" de teinte constant dans l'éclairage ambiant restait quasi invisible sur du blanc (très lumineux) mais devenait énorme en proportion sur du noir (peu de lumière) — c'est ce qui faisait apparaître "Marron" sur des objets réellement noirs (boîtier brillant, raté d'impression mat), même après une calibration correcte sur blanc.
+- La calibration se fait maintenant en deux étapes : d'abord un point blanc (comme avant, verrouille aussi la balance des blancs matérielle), puis un point noir (mesure et soustrait le voile). L'écran de calibration affiche maintenant l'étape en cours ("Étape 2 : le noir") et le bouton change de texte en conséquence.
+- Vérifié par simulation : un voile chaud artificiel appliqué à un objet noir est bien neutralisé après calibration deux points, le blanc et un gris médian restent corrects.
+
 ## v1.12 (build 13)
 
 **Correctif :**
