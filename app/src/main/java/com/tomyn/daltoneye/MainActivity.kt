@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var barreAccentResultat: android.view.View
     private lateinit var ecranCalibration: android.view.View
     private lateinit var boutonCalibrer: Button
+    private lateinit var boutonCalibrerManuel: android.widget.ImageButton
 
     private lateinit var executeurCamera: ExecutorService
     private val gestionnaireCalibration = GestionnaireCalibration()
@@ -63,8 +64,10 @@ class MainActivity : AppCompatActivity() {
         barreAccentResultat = findViewById(R.id.barreAccentResultat)
         ecranCalibration = findViewById(R.id.ecranCalibration)
         boutonCalibrer = ecranCalibration.findViewById(R.id.boutonCalibrer)
+        boutonCalibrerManuel = findViewById(R.id.boutonCalibrerManuel)
 
         boutonCalibrer.setOnClickListener { validerCalibration() }
+        boutonCalibrerManuel.setOnClickListener { ecranCalibration.visibility = android.view.View.VISIBLE }
 
         executeurCamera = Executors.newSingleThreadExecutor()
 

@@ -36,6 +36,20 @@
             android:textStyle="bold"
             android:textColor="@color/texte_clair" />
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/boutonCalibrerManuel"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_calibrer"
+            android:contentDescription="Calibrer maintenant"
+            app:tint="@color/texte_clair" />
+
     </LinearLayout>
 
     <!-- Flux camera en direct, dans un cadre visuel -->

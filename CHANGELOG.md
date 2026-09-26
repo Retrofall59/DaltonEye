@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3 (build 4)
+
+**Ajout :**
+- Bouton de calibration manuelle dans l'en-tête (icône cible en haut à droite), pour lancer une calibration à tout moment sans attendre le délai automatique d'une heure.
+
 ## v1.2 (build 3)
 
 **Ajout :**
