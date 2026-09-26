@@ -51,6 +51,17 @@
             android:text="" />
 
         <ImageButton
+            android:id="@+id/boutonFlash"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:alpha="0.5"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_flash"
+            android:contentDescription="Activer/desactiver la lampe torche"
+            app:tint="@color/texte_clair" />
+
+        <ImageButton
             android:id="@+id/boutonCalibrerManuel"
             android:layout_width="36dp"
             android:layout_height="36dp"

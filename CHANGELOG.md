@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.10 (build 11)
+
+**Ajout :**
+- Bouton lampe torche dans l'en-tête (icône éclair), piloté directement par l'appli via CameraX. Nécessaire car les réglages rapides du téléphone ne peuvent pas accéder au flash tant que DaltonEye tient la caméra. Le bouton s'assombrit quand la torche est éteinte, s'éclaircit quand elle est active. Torche coupée automatiquement si l'appli passe en arrière-plan.
+
 ## v1.9 (build 10)
 
 **Correctif :**

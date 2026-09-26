@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ecranCalibration: android.view.View
     private lateinit var boutonCalibrer: Button
     private lateinit var boutonCalibrerManuel: android.widget.ImageButton
+    private lateinit var boutonFlash: android.widget.ImageButton
     private lateinit var texteCompteACalibration: TextView
     private lateinit var badgeFige: TextView
 
@@ -70,6 +71,8 @@ class MainActivity : AppCompatActivity() {
     private var comptageStabilite = 0
     private var dejaVibrePourCetteStabilite = false
     private val SEUIL_FRAMES_STABLE = 8
+
+    @Volatile private var torcheActive = false
 
     private val demandePermissionCamera = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
@@ -93,6 +96,9 @@ class MainActivity : AppCompatActivity() {
         ecranCalibration = findViewById(R.id.ecranCalibration)
         boutonCalibrer = ecranCalibration.findViewById(R.id.boutonCalibrer)
         boutonCalibrerManuel = findViewById(R.id.boutonCalibrerManuel)
+        boutonFlash = findViewById(R.id.boutonFlash)
+
+        boutonFlash.setOnClickListener { basculerTorche() }
         texteCompteACalibration = findViewById(R.id.texteCompteACalibration)
         badgeFige = findViewById(R.id.badgeFige)
 
@@ -130,6 +136,11 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         gestionnaireUi.removeCallbacks(tickCompteACalibration)
         gestionnaireUi.removeCallbacks(tickMiseAuPoint)
+        if (torcheActive) {
+            torcheActive = false
+            camera?.cameraControl?.enableTorch(false)
+            boutonFlash.alpha = 0.5f
+        }
     }
 
     private val tickCompteACalibration: Runnable = object : Runnable {
@@ -234,6 +245,18 @@ class MainActivity : AppCompatActivity() {
             declencherMiseAuPointCentree()
             gestionnaireUi.postDelayed(this, 3000L)
         }
+    }
+
+    /** Bascule la lampe torche. CameraX la pilote directement pendant que l'appli tient la camera. */
+    private fun basculerTorche() {
+        val cam = camera ?: return
+        if (cam.cameraInfo.hasFlashUnit() != true) {
+            Toast.makeText(this, "Pas de flash disponible sur ce téléphone", Toast.LENGTH_SHORT).show()
+            return
+        }
+        torcheActive = !torcheActive
+        cam.cameraControl.enableTorch(torcheActive)
+        boutonFlash.alpha = if (torcheActive) 1.0f else 0.5f
     }
 
     private fun demarrerCamera() {
