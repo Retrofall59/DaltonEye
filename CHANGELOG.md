@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.18 (build 19)
+
+**Ajout : écran Paramètres** (icône engrenage dans l'en-tête)
+- **Taille de la zone d'analyse** : Petit / Moyen (défaut) / Grand, redimensionne aussi le réticule à l'écran en conséquence. Plus besoin de repasser par une mise à jour pour ajuster ça.
+- **Délai avant recalibration** : 30 min / 1h (défaut) / 2h.
+- **Vibration sur lecture stable** : on/off.
+- **À propos** : affiche le numéro de version en cours, utile pour signaler un retour sur le forum.
+
+## v1.17 (build 18)
+
+**Ajouts :**
+- Calibration persistante : elle survit maintenant à une fermeture complète de l'appli, pas seulement à une rotation d'écran. Sauvegardée dans les préférences internes du téléphone.
+- Badge d'avertissement "Trop de lumière" affiché quand le capteur sature (rouge et vert collés à 255, cf. correctif v1.15) — visible plutôt qu'invisible, pour comprendre pourquoi une lecture peut être instable et savoir qu'il faut s'éloigner ou changer l'éclairage.
+- Nouveau dossier `tests/` dans le dépôt : rejoue automatiquement tous les cas réels rencontrés (pince PCA, Anycubic Purple, gris neutres, écrêtage capteur...) pour éviter de recasser un bug déjà corrigé, plus le nuancier complet des 201 couleurs Bambu comme outil de diagnostic. Rien de visible pour l'usage quotidien de l'appli.
+
+## v1.16 (build 17)
+
+**Ajout :**
+- L'appli n'est plus bloquée en portrait, elle s'adapte à l'orientation du téléphone. Point important géré au passage : l'activité n'est plus recréée lors d'une rotation (configChanges), donc la calibration en cours, la caméra et la torche ne sont plus réinitialisées à chaque pivot du téléphone.
+
 ## v1.15 (build 16)
 
 **Correctif ciblé, sans effet de bord :**

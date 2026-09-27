@@ -20,7 +20,7 @@ class GestionnaireCalibration {
     enum class Etape { POINT_BLANC, POINT_NOIR }
 
     companion object {
-        const val DELAI_CALIBRATION_MS = 60 * 60 * 1000L // 1 heure
+        const val DELAI_CALIBRATION_MS_DEFAUT = 60 * 60 * 1000L // 1 heure, valeur par defaut
         // Cibles neutres : ce que devrait mesurer la camera sur un blanc et un noir parfaitement
         // neutres. CIBLE_BLANC proche de la reference "Blanc" (F5F5F5) pour qu'apres calibration
         // une feuille blanche soit bien classee "Blanc" et non "Transparent". CIBLE_NOIR proche
@@ -28,6 +28,9 @@ class GestionnaireCalibration {
         const val CIBLE_BLANC = 240
         const val CIBLE_NOIR = 10
     }
+
+    /** Reglable depuis l'ecran Parametres (30 min / 1h / 2h). */
+    var delaiCalibrationMs: Long = DELAI_CALIBRATION_MS_DEFAUT
 
     private var etapeEnCours = Etape.POINT_BLANC
 
@@ -73,12 +76,12 @@ class GestionnaireCalibration {
 
     /** Calibration necessaire si jamais terminee, ou si le delai est ecoule. */
     fun calibrationNecessaire(maintenant: Long): Boolean =
-        dateDerniereCalibration == 0L || (maintenant - dateDerniereCalibration) >= DELAI_CALIBRATION_MS
+        dateDerniereCalibration == 0L || (maintenant - dateDerniereCalibration) >= delaiCalibrationMs
 
     /** Temps restant avant la prochaine calibration obligatoire, en millisecondes (0 si deja due). */
     fun tempsRestantMs(maintenant: Long): Long {
         if (dateDerniereCalibration == 0L) return 0L
-        val restant = DELAI_CALIBRATION_MS - (maintenant - dateDerniereCalibration)
+        val restant = delaiCalibrationMs - (maintenant - dateDerniereCalibration)
         return if (restant > 0L) restant else 0L
     }
 
@@ -91,5 +94,24 @@ class GestionnaireCalibration {
             ajuste(g, decalageG, echelleG, CIBLE_NOIR),
             ajuste(b, decalageB, echelleB, CIBLE_NOIR)
         )
+    }
+
+    /** Etat a sauvegarder pour retrouver la calibration apres une fermeture complete de l'appli. */
+    data class EtatCalibration(
+        val decalageR: Double, val decalageG: Double, val decalageB: Double,
+        val echelleR: Double, val echelleG: Double, val echelleB: Double,
+        val dateDerniereCalibration: Long
+    )
+
+    fun etatPourSauvegarde(): EtatCalibration = EtatCalibration(
+        decalageR, decalageG, decalageB, echelleR, echelleG, echelleB, dateDerniereCalibration
+    )
+
+    /** Restaure un etat sauvegarde (appele au demarrage de l'appli). */
+    fun restaurer(etat: EtatCalibration) {
+        decalageR = etat.decalageR; decalageG = etat.decalageG; decalageB = etat.decalageB
+        echelleR = etat.echelleR; echelleG = etat.echelleG; echelleB = etat.echelleB
+        dateDerniereCalibration = etat.dateDerniereCalibration
+        etapeEnCours = Etape.POINT_BLANC
     }
 }

@@ -23,8 +23,8 @@ android {
         applicationId "com.tomyn.daltoneye"
         minSdk 26
         targetSdk 34
-        versionCode 16
-        versionName "1.15"
+        versionCode 19
+        versionName "1.18"
     }
 
     buildTypes {

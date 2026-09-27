@@ -52,9 +52,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var titreCalibration: TextView
     private lateinit var messageCalibration: TextView
     private lateinit var boutonCalibrerManuel: android.widget.ImageButton
+    private lateinit var boutonParametres: android.widget.ImageButton
+    private lateinit var reticule: android.view.View
+
+    @Volatile private var fractionZoneAnalyse: Double = TailleReticule.MOYEN.fractionImage
+    @Volatile private var vibrationActivee: Boolean = true
     private lateinit var boutonFlash: android.widget.ImageButton
     private lateinit var texteCompteACalibration: TextView
     private lateinit var badgeFige: TextView
+    private lateinit var badgeSature: TextView
 
     private lateinit var executeurCamera: ExecutorService
     private val gestionnaireCalibration = GestionnaireCalibration()
@@ -90,6 +96,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        restaurerCalibrationSauvegardee()
+
         previewCamera = findViewById(R.id.previewCamera)
         carreCouleurCaptee = findViewById(R.id.carreCouleurCaptee)
         nomFamilleCouleur = findViewById(R.id.nomFamilleCouleur)
@@ -100,11 +108,17 @@ class MainActivity : AppCompatActivity() {
         titreCalibration = ecranCalibration.findViewById(R.id.titreCalibration)
         messageCalibration = ecranCalibration.findViewById(R.id.messageCalibration)
         boutonCalibrerManuel = findViewById(R.id.boutonCalibrerManuel)
+        boutonParametres = findViewById(R.id.boutonParametres)
+        reticule = findViewById(R.id.reticule)
+        boutonParametres.setOnClickListener {
+            startActivity(android.content.Intent(this, SettingsActivity::class.java))
+        }
         boutonFlash = findViewById(R.id.boutonFlash)
 
         boutonFlash.setOnClickListener { basculerTorche() }
         texteCompteACalibration = findViewById(R.id.texteCompteACalibration)
         badgeFige = findViewById(R.id.badgeFige)
+        badgeSature = findViewById(R.id.badgeSature)
 
         boutonCalibrer.setOnClickListener { validerCalibration() }
         boutonCalibrerManuel.setOnClickListener {
@@ -134,9 +148,29 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        appliquerParametres()
         verifierCalibration()
         gestionnaireUi.post(tickCompteACalibration)
         gestionnaireUi.post(tickMiseAuPoint)
+    }
+
+    /** Recharge et applique les reglages utilisateur (taille de zone, delai calibration, vibration). */
+    private fun appliquerParametres() {
+        val taille = GestionnaireParametres.lireTailleReticule(this)
+        fractionZoneAnalyse = taille.fractionImage
+        val tailleDp = taille.dpEcran
+        val densite = resources.displayMetrics.density
+        val taillePx = (tailleDp * densite).toInt()
+        reticule.layoutParams = reticule.layoutParams.apply {
+            width = taillePx
+            height = taillePx
+        }
+        reticule.requestLayout()
+
+        gestionnaireCalibration.delaiCalibrationMs =
+            GestionnaireParametres.lireDelaiCalibrationMinutes(this) * 60 * 1000L
+
+        vibrationActivee = GestionnaireParametres.lireVibrationActivee(this)
     }
 
     override fun onPause() {
@@ -175,6 +209,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun vibrerCourt() {
+        if (!vibrationActivee) return
         val v = vibreur ?: return
         if (v.hasVibrator()) {
             v.vibrate(VibrationEffect.createOneShot(50L, VibrationEffect.DEFAULT_AMPLITUDE))
@@ -226,7 +261,39 @@ class MainActivity : AppCompatActivity() {
             return
         }
         gestionnaireCalibration.capturerPointNoir(brute.first, brute.second, brute.third, System.currentTimeMillis())
+        sauvegarderCalibration()
         ecranCalibration.visibility = android.view.View.GONE
+    }
+
+    /** Sauvegarde la calibration pour qu'elle survive a une fermeture complete de l'appli (pas juste une rotation). */
+    private fun sauvegarderCalibration() {
+        val etat = gestionnaireCalibration.etatPourSauvegarde()
+        getSharedPreferences("daltoneye_calibration", MODE_PRIVATE).edit()
+            .putFloat("decalageR", etat.decalageR.toFloat())
+            .putFloat("decalageG", etat.decalageG.toFloat())
+            .putFloat("decalageB", etat.decalageB.toFloat())
+            .putFloat("echelleR", etat.echelleR.toFloat())
+            .putFloat("echelleG", etat.echelleG.toFloat())
+            .putFloat("echelleB", etat.echelleB.toFloat())
+            .putLong("dateDerniereCalibration", etat.dateDerniereCalibration)
+            .apply()
+    }
+
+    private fun restaurerCalibrationSauvegardee() {
+        val prefs = getSharedPreferences("daltoneye_calibration", MODE_PRIVATE)
+        val date = prefs.getLong("dateDerniereCalibration", 0L)
+        if (date == 0L) return // rien de sauvegarde
+        gestionnaireCalibration.restaurer(
+            GestionnaireCalibration.EtatCalibration(
+                decalageR = prefs.getFloat("decalageR", 0f).toDouble(),
+                decalageG = prefs.getFloat("decalageG", 0f).toDouble(),
+                decalageB = prefs.getFloat("decalageB", 0f).toDouble(),
+                echelleR = prefs.getFloat("echelleR", 1f).toDouble(),
+                echelleG = prefs.getFloat("echelleG", 1f).toDouble(),
+                echelleB = prefs.getFloat("echelleB", 1f).toDouble(),
+                dateDerniereCalibration = date
+            )
+        )
     }
 
     /** Met a jour le texte de l'ecran de calibration selon l'etape en cours (blanc ou noir). */
@@ -343,6 +410,7 @@ class MainActivity : AppCompatActivity() {
 
             val corrige = gestionnaireCalibration.corriger(r, g, b)
             val famille = ClassificateurCouleur.classifier(corrige.first, corrige.second, corrige.third)
+            val sature = corrige.first >= 250 && corrige.second >= 250
 
             // Suivi de stabilite : vibration courte une seule fois quand la meme famille tient
             // sur plusieurs images d'affilee, pas a chaque frame.
@@ -365,6 +433,7 @@ class MainActivity : AppCompatActivity() {
                     nomFamilleCouleur.text = famille.nom
                     texteHexCapte.text = String.format("#%02X%02X%02X", corrige.first, corrige.second, corrige.third)
                     barreAccentResultat.setBackgroundColor(Color.parseColor("#" + famille.hexReference))
+                    badgeSature.visibility = if (sature) android.view.View.VISIBLE else android.view.View.GONE
                 }
             }
         } finally {
@@ -384,7 +453,7 @@ class MainActivity : AppCompatActivity() {
         val planU = image.planes[1]
         val planV = image.planes[2]
 
-        val tailleZone = (minOf(largeur, hauteur) * 0.05).toInt().coerceAtLeast(4)
+        val tailleZone = (minOf(largeur, hauteur) * fractionZoneAnalyse).toInt().coerceAtLeast(4)
         val centreX = largeur / 2
         val centreY = hauteur / 2
 
