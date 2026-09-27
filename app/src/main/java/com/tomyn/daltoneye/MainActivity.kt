@@ -80,6 +80,11 @@ class MainActivity : AppCompatActivity() {
     private var dejaVibrePourCetteStabilite = false
     @Volatile private var seuilFramesStable = SeuilVibration.NORMALE.nbFrames
 
+    // Lissage temporel : moyenne des dernieres lectures pour reduire le bruit d'une image a l'autre.
+    // La calibration, elle, utilise toujours la derniere lecture brute instantanee (reactivite).
+    private val tamponCouleurs = ArrayDeque<Triple<Int, Int, Int>>()
+    private val TAILLE_TAMPON_LISSAGE = 8
+
     @Volatile private var torcheActive = false
 
     private val demandePermissionCamera = registerForActivityResult(
@@ -282,6 +287,7 @@ class MainActivity : AppCompatActivity() {
         }
         gestionnaireCalibration.capturerPointNoir(brute.first, brute.second, brute.third, System.currentTimeMillis())
         sauvegarderCalibration()
+        tamponCouleurs.clear() // les anciennes valeurs lissees venaient de l'ancienne calibration
         ecranCalibration.visibility = android.view.View.GONE
     }
 
@@ -428,7 +434,19 @@ class MainActivity : AppCompatActivity() {
             // mais on ne touche pas au resultat affiche ni au suivi de stabilite pendant le gel.
             if (affichageFige) return
 
-            val corrige = gestionnaireCalibration.corriger(r, g, b)
+            val corrigeInstantane = gestionnaireCalibration.corriger(r, g, b)
+
+            // Lissage temporel : on ajoute la lecture corrigee au tampon, et on classe/affiche
+            // la MOYENNE du tampon plutot que la lecture instantanee, pour reduire le bruit
+            // residuel visible d'une image a l'autre.
+            tamponCouleurs.addLast(corrigeInstantane)
+            if (tamponCouleurs.size > TAILLE_TAMPON_LISSAGE) tamponCouleurs.removeFirst()
+            val corrige = Triple(
+                tamponCouleurs.sumOf { it.first } / tamponCouleurs.size,
+                tamponCouleurs.sumOf { it.second } / tamponCouleurs.size,
+                tamponCouleurs.sumOf { it.third } / tamponCouleurs.size
+            )
+
             val famille = ClassificateurCouleur.classifier(corrige.first, corrige.second, corrige.third)
             val sature = corrige.first >= 250 && corrige.second >= 250
 
@@ -461,11 +479,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Conversion YUV -> RGB simplifiee, moyennee sur un carre central d'environ 5% de la largeur/hauteur
-     * de l'image (suffisant pour capter la couleur du plastique tenu devant la camera, sans etre
-     * perturbe par le fond autour).
-     */
+    /** Rejette les pixels aberrants (reflet, bord de piece) : mediane plutot que moyenne.
+     * Zone CIRCULAIRE, coherente avec le reticule affiche a l'ecran (avant : zone carree,
+     * les coins hors du cercle visible influençaient quand meme le calcul). */
     private fun couleurMoyenneZoneCentrale(image: ImageProxy): Triple<Int, Int, Int> {
         val largeur = image.width
         val hauteur = image.height
@@ -474,27 +490,39 @@ class MainActivity : AppCompatActivity() {
         val planV = image.planes[2]
 
         val tailleZone = (minOf(largeur, hauteur) * fractionZoneAnalyse).toInt().coerceAtLeast(4)
+        val rayon = tailleZone / 2
+        val rayonCarre = rayon * rayon
         val centreX = largeur / 2
         val centreY = hauteur / 2
 
-        var sommeR = 0L; var sommeG = 0L; var sommeB = 0L
-        var nbPixels = 0
+        val valeursR = mutableListOf<Int>()
+        val valeursG = mutableListOf<Int>()
+        val valeursB = mutableListOf<Int>()
 
         val pasEchantillon = 2 // on echantillonne un pixel sur deux pour rester leger
-        var y = centreY - tailleZone / 2
-        while (y < centreY + tailleZone / 2) {
-            var x = centreX - tailleZone / 2
-            while (x < centreX + tailleZone / 2) {
-                val (r, g, b) = pixelYuvVersRgb(planY, planU, planV, x, y, image.width, planY.rowStride, planU.rowStride, planU.pixelStride)
-                sommeR += r; sommeG += g; sommeB += b
-                nbPixels++
+        var y = centreY - rayon
+        while (y < centreY + rayon) {
+            var x = centreX - rayon
+            while (x < centreX + rayon) {
+                // Ne garder que les pixels DANS le cercle (coherent avec le reticule affiche)
+                val dx = x - centreX
+                val dy = y - centreY
+                if (dx * dx + dy * dy <= rayonCarre) {
+                    val (r, g, b) = pixelYuvVersRgb(planY, planU, planV, x, y, image.width, planY.rowStride, planU.rowStride, planU.pixelStride)
+                    valeursR.add(r); valeursG.add(g); valeursB.add(b)
+                }
                 x += pasEchantillon
             }
             y += pasEchantillon
         }
 
-        if (nbPixels == 0) return Triple(128, 128, 128)
-        return Triple((sommeR / nbPixels).toInt(), (sommeG / nbPixels).toInt(), (sommeB / nbPixels).toInt())
+        if (valeursR.isEmpty()) return Triple(128, 128, 128)
+
+        fun mediane(valeurs: MutableList<Int>): Int {
+            valeurs.sort()
+            return valeurs[valeurs.size / 2]
+        }
+        return Triple(mediane(valeursR), mediane(valeursG), mediane(valeursB))
     }
 
     private fun pixelYuvVersRgb(

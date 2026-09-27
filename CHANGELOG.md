@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.22 (build 23)
+
+**Améliorations de précision, trois correctifs liés à la mesure de couleur :**
+- **Zone d'analyse circulaire** : elle était carrée jusqu'ici, alors que le réticule affiché à l'écran est un cercle — les coins hors du cercle visible influençaient quand même le calcul sans que ça se voie. Corrigé pour que la zone mesurée corresponde exactement à ce qui est affiché.
+- **Rejet des pixels aberrants** : la couleur d'une image est maintenant calculée par médiane plutôt que par simple moyenne, pour qu'un reflet ponctuel ou un bord de pièce qui déborde dans le réticule ne fausse plus toute la mesure.
+- **Lissage temporel** : le résultat affiché est maintenant la moyenne des 8 dernières lectures (au lieu de la lecture instantanée), pour réduire le bruit résiduel visible d'une image à l'autre. La calibration continue d'utiliser la lecture instantanée pour rester réactive. Le tampon de lissage est vidé automatiquement après chaque calibration, pour ne pas mélanger d'anciennes valeurs avec les nouvelles.
+
 ## v1.21 (build 22)
 
 **Correctif :**
