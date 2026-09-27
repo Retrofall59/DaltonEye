@@ -180,23 +180,101 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Vibration sur lecture stable"
+                        android:textColor="@color/texte_principal"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <Switch
+                        android:id="@+id/interrupteurVibration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Rapidité de déclenchement"
+                    android:textColor="@color/texte_secondaire"
+                    android:textSize="13sp" />
+
+                <RadioGroup
+                    android:id="@+id/groupeSeuilVibration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <RadioButton
+                        android:id="@+id/optionVibrationRapide"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Rapide" />
+
+                    <RadioButton
+                        android:id="@+id/optionVibrationNormale"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Normale (par défaut)" />
+
+                    <RadioButton
+                        android:id="@+id/optionVibrationLente"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Lente (plus sûre)" />
+
+                </RadioGroup>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Carte : bon a savoir -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/carte_blanc">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:padding="18dp">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Vibration sur lecture stable"
+                    android:text="Bon à savoir"
                     android:textColor="@color/texte_principal"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
-                <Switch
-                    android:id="@+id/interrupteurVibration"
+                <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Recalibre manuellement (icône cible) si tu changes de fond de travail, si tu allumes/éteins la torche, ou si l'éclairage change nettement — pas la peine d'attendre le délai automatique."
+                    android:textColor="@color/texte_secondaire"
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
@@ -208,7 +286,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
             app:cardBackgroundColor="@color/carte_blanc">
@@ -239,6 +317,32 @@
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
+
+        <!-- Bouton copier infos de diagnostic -->
+        <Button
+            android:id="@+id/boutonDiagnostic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="12dp"
+            android:text="Copier les infos de diagnostic"
+            android:textAllCaps="false"
+            android:textColor="@color/texte_clair"
+            android:background="@drawable/fond_bouton_calibrer" />
+
+        <!-- Bouton reinitialiser -->
+        <Button
+            android:id="@+id/boutonReinitialiser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
+            android:text="Réinitialiser les paramètres"
+            android:textAllCaps="false"
+            android:textColor="@color/attention"
+            android:background="@android:color/transparent" />
 
     </LinearLayout>
 

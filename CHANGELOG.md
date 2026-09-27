@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.20 (build 21)
+
+**Ajouts :**
+- L'écran ne se met plus en veille automatiquement pendant l'utilisation de l'appli.
+- Appui long sur le code hex affiché : le copie dans le presse-papier (utile pour signaler un cas de classification douteuse).
+- Nouveau bouton "Copier les infos de diagnostic" dans les Paramètres : rassemble modèle du téléphone, version de l'appli, dernier hex affiché et facteurs de calibration en un coup, pour accélérer un futur signalement.
+
+## v1.19 (build 20)
+
+**Ajouts au menu Paramètres :**
+- **Rapidité de la vibration** (Rapide/Normale par défaut/Lente) : règle le nombre d'images stables nécessaires avant la vibration de confirmation.
+- **Carte "Bon à savoir"** : rappel de quand recalibrer manuellement (changement de fond, torche, éclairage) plutôt que d'attendre le délai automatique.
+- **Bouton "Réinitialiser les paramètres"** : remet tout aux valeurs par défaut en un geste.
+
+**Non retenu :** choix de caméra macro — vérifié que le Redmi 15C 5G n'a pas d'objectif macro (confirmé par la FAQ Xiaomi officielle), ce réglage n'aurait rien eu à proposer.
+
 ## v1.18 (build 19)
 
 **Ajout : écran Paramètres** (icône engrenage dans l'en-tête)

@@ -61,6 +61,31 @@ class SettingsActivity : AppCompatActivity() {
             GestionnaireParametres.ecrireVibrationActivee(this, active)
         }
 
+        val groupeSeuilVibration = findViewById<RadioGroup>(R.id.groupeSeuilVibration)
+        val optionVibrationRapide = findViewById<android.widget.RadioButton>(R.id.optionVibrationRapide)
+        val optionVibrationNormale = findViewById<android.widget.RadioButton>(R.id.optionVibrationNormale)
+        val optionVibrationLente = findViewById<android.widget.RadioButton>(R.id.optionVibrationLente)
+
+        when (GestionnaireParametres.lireSeuilVibration(this)) {
+            SeuilVibration.RAPIDE -> optionVibrationRapide.isChecked = true
+            SeuilVibration.LENTE -> optionVibrationLente.isChecked = true
+            SeuilVibration.NORMALE -> optionVibrationNormale.isChecked = true
+        }
+        groupeSeuilVibration.setOnCheckedChangeListener { _, checkedId ->
+            val seuil = when (checkedId) {
+                R.id.optionVibrationRapide -> SeuilVibration.RAPIDE
+                R.id.optionVibrationLente -> SeuilVibration.LENTE
+                else -> SeuilVibration.NORMALE
+            }
+            GestionnaireParametres.ecrireSeuilVibration(this, seuil)
+        }
+
+        val boutonReinitialiser = findViewById<android.widget.Button>(R.id.boutonReinitialiser)
+        boutonReinitialiser.setOnClickListener {
+            GestionnaireParametres.reinitialiser(this)
+            recreate() // relance l'ecran pour reafficher toutes les valeurs par defaut
+        }
+
         val texteVersion = findViewById<TextView>(R.id.texteVersion)
         texteVersion.text = try {
             val infos = packageManager.getPackageInfo(packageName, 0)
@@ -68,5 +93,37 @@ class SettingsActivity : AppCompatActivity() {
         } catch (e: PackageManager.NameNotFoundException) {
             "DaltonEye"
         }
+
+        val boutonDiagnostic = findViewById<android.widget.Button>(R.id.boutonDiagnostic)
+        boutonDiagnostic.setOnClickListener { copierInfosDiagnostic() }
+    }
+
+    /** Rassemble modele du telephone, version de l'appli, dernier hex et facteurs de calibration
+     * dans le presse-papier, pour accelerer un signalement de bug (a moi ou sur le forum). */
+    private fun copierInfosDiagnostic() {
+        val version = try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (e: PackageManager.NameNotFoundException) { "?" }
+
+        val dernierHex = intent.getStringExtra("dernier_hex") ?: "non disponible"
+        val decR = intent.getDoubleExtra("decalageR", 0.0)
+        val decG = intent.getDoubleExtra("decalageG", 0.0)
+        val decB = intent.getDoubleExtra("decalageB", 0.0)
+        val echR = intent.getDoubleExtra("echelleR", 1.0)
+        val echG = intent.getDoubleExtra("echelleG", 1.0)
+        val echB = intent.getDoubleExtra("echelleB", 1.0)
+
+        val texte = buildString {
+            appendLine("=== Diagnostic DaltonEye ===")
+            appendLine("Téléphone : ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+            appendLine("Version appli : $version")
+            appendLine("Dernier hex affiché : $dernierHex")
+            appendLine("Calibration - décalage (R,G,B) : $decR, $decG, $decB")
+            appendLine("Calibration - échelle (R,G,B) : $echR, $echG, $echB")
+        }
+
+        val gestionnaire = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        gestionnaire.setPrimaryClip(android.content.ClipData.newPlainText("Diagnostic DaltonEye", texte))
+        android.widget.Toast.makeText(this, "Infos de diagnostic copiées", android.widget.Toast.LENGTH_SHORT).show()
     }
 }

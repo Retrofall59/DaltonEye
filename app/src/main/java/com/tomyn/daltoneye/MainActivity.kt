@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
     private var derniereFamilleVue: String? = null
     private var comptageStabilite = 0
     private var dejaVibrePourCetteStabilite = false
-    private val SEUIL_FRAMES_STABLE = 8
+    @Volatile private var seuilFramesStable = SeuilVibration.NORMALE.nbFrames
 
     @Volatile private var torcheActive = false
 
@@ -96,12 +96,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Empeche la mise en veille pendant l'utilisation (session de tri en continu)
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         restaurerCalibrationSauvegardee()
 
         previewCamera = findViewById(R.id.previewCamera)
         carreCouleurCaptee = findViewById(R.id.carreCouleurCaptee)
         nomFamilleCouleur = findViewById(R.id.nomFamilleCouleur)
         texteHexCapte = findViewById(R.id.texteHexCapte)
+        texteHexCapte.setOnLongClickListener {
+            val gestionnaire = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            gestionnaire.setPrimaryClip(android.content.ClipData.newPlainText("Couleur DaltonEye", texteHexCapte.text))
+            Toast.makeText(this, "Hex copié : ${texteHexCapte.text}", Toast.LENGTH_SHORT).show()
+            true
+        }
         barreAccentResultat = findViewById(R.id.barreAccentResultat)
         ecranCalibration = findViewById(R.id.ecranCalibration)
         boutonCalibrer = ecranCalibration.findViewById(R.id.boutonCalibrer)
@@ -111,7 +120,17 @@ class MainActivity : AppCompatActivity() {
         boutonParametres = findViewById(R.id.boutonParametres)
         reticule = findViewById(R.id.reticule)
         boutonParametres.setOnClickListener {
-            startActivity(android.content.Intent(this, SettingsActivity::class.java))
+            val etat = gestionnaireCalibration.etatPourSauvegarde()
+            val intention = android.content.Intent(this, SettingsActivity::class.java).apply {
+                putExtra("dernier_hex", texteHexCapte.text.toString())
+                putExtra("decalageR", etat.decalageR)
+                putExtra("decalageG", etat.decalageG)
+                putExtra("decalageB", etat.decalageB)
+                putExtra("echelleR", etat.echelleR)
+                putExtra("echelleG", etat.echelleG)
+                putExtra("echelleB", etat.echelleB)
+            }
+            startActivity(intention)
         }
         boutonFlash = findViewById(R.id.boutonFlash)
 
@@ -171,6 +190,7 @@ class MainActivity : AppCompatActivity() {
             GestionnaireParametres.lireDelaiCalibrationMinutes(this) * 60 * 1000L
 
         vibrationActivee = GestionnaireParametres.lireVibrationActivee(this)
+        seuilFramesStable = GestionnaireParametres.lireSeuilVibration(this).nbFrames
     }
 
     override fun onPause() {
@@ -421,7 +441,7 @@ class MainActivity : AppCompatActivity() {
                 comptageStabilite = 1
                 dejaVibrePourCetteStabilite = false
             }
-            if (comptageStabilite >= SEUIL_FRAMES_STABLE && !dejaVibrePourCetteStabilite) {
+            if (comptageStabilite >= seuilFramesStable && !dejaVibrePourCetteStabilite) {
                 dejaVibrePourCetteStabilite = true
                 runOnUiThread { vibrerCourt() }
             }
