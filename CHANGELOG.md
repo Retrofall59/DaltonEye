@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.21 (build 22)
+
+**Correctif :**
+- Le texte des options (Petit/Moyen/Grand, 30min/1h/2h, Rapide/Normale/Lente) était invisible dans l'écran Paramètres : blanc sur fond blanc, la couleur de texte des boutons radio étant héritée du thème sombre de l'appli au lieu d'être fixée explicitement. Seul le rond de sélection restait visible, rendant les options impossibles à distinguer. Corrigé sur les 9 boutons radio.
+
 ## v1.20 (build 21)
 
 **Ajouts :**

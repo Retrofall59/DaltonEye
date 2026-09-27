@@ -83,18 +83,21 @@
                         android:id="@+id/optionPetit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="Petit (pièces minuscules)" />
 
                     <RadioButton
                         android:id="@+id/optionMoyen"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="Moyen (par défaut)" />
 
                     <RadioButton
                         android:id="@+id/optionGrand"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="Grand (grosses pièces)" />
 
                 </RadioGroup>
@@ -146,18 +149,21 @@
                         android:id="@+id/optionDelai30"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="30 minutes" />
 
                     <RadioButton
                         android:id="@+id/optionDelai60"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="1 heure (par défaut)" />
 
                     <RadioButton
                         android:id="@+id/optionDelai120"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="2 heures" />
 
                 </RadioGroup>
@@ -223,18 +229,21 @@
                         android:id="@+id/optionVibrationRapide"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="Rapide" />
 
                     <RadioButton
                         android:id="@+id/optionVibrationNormale"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="Normale (par défaut)" />
 
                     <RadioButton
                         android:id="@+id/optionVibrationLente"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/texte_principal"
                         android:text="Lente (plus sûre)" />
 
                 </RadioGroup>
