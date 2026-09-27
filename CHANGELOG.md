@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.23 (build 24)
+
+**Correctif du lissage introduit en v1.22 :**
+- Le lissage sur 8 images pouvait donner un affichage "mélangé" pendant une fraction de seconde en changeant rapidement de pièce sous le réticule (anciennes et nouvelles couleurs mélangées le temps que le tampon se renouvelle). Détection d'un changement brusque de scène (gros écart entre la lecture instantanée et la moyenne du tampon) : dans ce cas, le tampon est vidé immédiatement au lieu de se mélanger progressivement — même logique que ce qui se fait déjà après une calibration.
+
 ## v1.22 (build 23)
 
 **Améliorations de précision, trois correctifs liés à la mesure de couleur :**

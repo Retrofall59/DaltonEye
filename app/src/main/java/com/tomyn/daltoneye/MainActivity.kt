@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
     // La calibration, elle, utilise toujours la derniere lecture brute instantanee (reactivite).
     private val tamponCouleurs = ArrayDeque<Triple<Int, Int, Int>>()
     private val TAILLE_TAMPON_LISSAGE = 8
+    private val SEUIL_CHANGEMENT_SCENE = 60 // ecart RGB (sur 255) au-dela duquel on considere que la piece a change
 
     @Volatile private var torcheActive = false
 
@@ -435,6 +436,21 @@ class MainActivity : AppCompatActivity() {
             if (affichageFige) return
 
             val corrigeInstantane = gestionnaireCalibration.corriger(r, g, b)
+
+            // Detecte un changement brusque de scene (nouvelle piece sous le reticule) : si la
+            // lecture instantanee s'ecarte trop de la moyenne du tampon, on vide le tampon au lieu
+            // de le mélanger progressivement, pour eviter un affichage "flou" pendant la transition.
+            if (tamponCouleurs.isNotEmpty()) {
+                val moyR = tamponCouleurs.sumOf { it.first } / tamponCouleurs.size
+                val moyG = tamponCouleurs.sumOf { it.second } / tamponCouleurs.size
+                val moyB = tamponCouleurs.sumOf { it.third } / tamponCouleurs.size
+                val ecart = maxOf(
+                    kotlin.math.abs(corrigeInstantane.first - moyR),
+                    kotlin.math.abs(corrigeInstantane.second - moyG),
+                    kotlin.math.abs(corrigeInstantane.third - moyB)
+                )
+                if (ecart > SEUIL_CHANGEMENT_SCENE) tamponCouleurs.clear()
+            }
 
             // Lissage temporel : on ajoute la lecture corrigee au tampon, et on classe/affiche
             // la MOYENNE du tampon plutot que la lecture instantanee, pour reduire le bruit
