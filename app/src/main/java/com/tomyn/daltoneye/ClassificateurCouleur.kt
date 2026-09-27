@@ -43,6 +43,20 @@ object ClassificateurCouleur {
      * @return la famille dont la reference est perceptuellement la plus proche.
      */
     fun classifier(r: Int, g: Int, b: Int): FamilleCouleur {
+        // Cas special : capteur ecrete (rouge ET vert satures a 255). Sur une piece tres claire
+        // (creme/ivoire), la camera peut saturer R et G completement ; seul le bleu garde encore
+        // de la marge pour varier, et le moindre micro-mouvement de quelques mm suffit alors a
+        // faire basculer la classification (vu en test reel : #FFFF7B classe Jaune a tort sur une
+        // piece beige/creme). Corrige localement, sans toucher au calcul normal pour les couleurs
+        // qui ne saturent pas le capteur.
+        if (r >= 250 && g >= 250) {
+            return when {
+                b > 220 -> familles.first { it.nom == "Blanc" }
+                b > 90 -> familles.first { it.nom == "Beige" }
+                else -> familles.first { it.nom == "Jaune" }
+            }
+        }
+
         // Cas special : couleur quasi neutre (rouge, vert, bleu tres proches entre eux).
         // Sans ce garde-fou, un gris pur peut se retrouver "le moins loin" d'une couleur
         // saturee (Marron, Violet...) a cause de la formule de distance, alors qu'un vrai

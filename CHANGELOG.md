@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.15 (build 16)
+
+**Correctif ciblé, sans effet de bord :**
+- Sur une pièce très claire (crème/ivoire), le capteur peut saturer complètement les canaux rouge et vert (les deux collés à 255) ; seul le bleu garde de la marge pour varier, rendant la classification instable au moindre micro-mouvement (1mm suffisait à faire basculer "Beige" en "Jaune"). Cas identifié via 3 hex réels : #FFFF7B, #FFFFF8, #FFFFCB.
+- Correctif local : quand rouge ET vert sont saturés (≥250), la classification se fait uniquement sur le bleu (Blanc/Beige/Jaune selon sa valeur), sans passer par le calcul habituel. Les couleurs qui ne saturent pas le capteur ne sont pas concernées par ce changement — vérifié sur l'ensemble des cas déjà validés (bleu, violet, cyan, magenta, rose, gris, marron, jaune normal, etc.), rien n'a bougé.
+- Une correction d'exposition globale avait été envisagée puis écartée : elle aurait affecté toutes les mesures, pas seulement les pièces très claires.
+
 ## v1.14 (build 15)
 
 **Ajustement :**
