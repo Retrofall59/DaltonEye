@@ -1,8 +1,10 @@
 import com.tomyn.daltoneye.ClassificateurCouleur
+import com.tomyn.daltoneye.InstantaneMesure
 import com.tomyn.daltoneye.RapportMesure
 
 /**
- * Test des donnees de diagnostic passives (v1.25) : explication du classement et mesures brutes.
+ * Test des donnees de diagnostic passives (v1.25/v1.26) : explication du classement, mesures brutes,
+ * instantane unique et rapport (mesure actuelle + derniere validation).
  *
  *   kotlinc ../app/src/main/java/com/tomyn/daltoneye/ClassificateurCouleur.kt \
  *           ../app/src/main/java/com/tomyn/daltoneye/RapportMesure.kt TestExplicationEtMesures.kt \
@@ -52,11 +54,46 @@ fun main() {
     check("luminosite blanc = 255", RapportMesure.luminosite(255, 255, 255) == 255)
     check("luminosite noir = 0", RapportMesure.luminosite(0, 0, 0) == 0)
     check("luminosite (173,82,65) = 107", RapportMesure.luminosite(173, 82, 65) == 107, "obtenu=${RapportMesure.luminosite(173, 82, 65)}")
-    val m = RapportMesure.formaterMesures(Triple(173, 82, 65), Triple(160, 74, 61), Triple(161, 75, 62))
-    check("mesures : brut, luminosite, corrige, affiche",
-        m.contains("(173, 82, 65) = #AD5241") && m.contains("107/255") && m.contains("(160, 74, 61) = #A04A3D") && m.contains("(161, 75, 62) = #A14B3E"), m)
-    val vide = RapportMesure.formaterMesures(null, null, null)
-    check("sans mesure : 'non disponible', pas d'erreur", vide.contains("non disponible") && !vide.contains("null"), vide)
+    // 5) Rapport a instantane unique (v1.26)
+    val bleu = InstantaneMesure(
+        horodatageMs = 1_000_000L, brut = Triple(10, 120, 230), corrigeInstantane = Triple(9, 146, 242),
+        affiche = Triple(9, 146, 242), famille = "Bleu", dispersion = "R 5-12, G 110-130, B 220-240 (p10-p90, brut) sur 208 pixels"
+    )
+    val rouge = InstantaneMesure(
+        horodatageMs = 1_030_000L, brut = Triple(173, 82, 65), corrigeInstantane = Triple(160, 74, 61),
+        affiche = Triple(161, 75, 62), famille = "Rouge", dispersion = "R 150-190, G 60-100, B 50-80 (p10-p90, brut) sur 208 pixels"
+    )
+    val now = 1_042_000L
+
+    // Cas type : la piece a ete validee Bleu, puis retiree ; on copie le rapport 42 s apres la validation
+    val rapport = RapportMesure.formaterRapport(actuelle = rouge, validation = bleu, maintenantMs = now)
+    val (blocActuel, blocValidation) = rapport.split("--- Derniere validation").let { it[0] to "--- Derniere validation" + it[1] }
+
+    check("titre de la mesure actuelle avec son age (12 s)", blocActuel.contains("--- Mesure actuelle (il y a 12 s) ---"), blocActuel.lines().first())
+    check("titre de la validation : famille + age (42 s)", blocValidation.contains("lecture stable, famille Bleu (il y a 42 s)"), blocValidation.lines().first())
+    check("bloc ACTUEL : toutes les valeurs viennent de l'instantane actuel (rouge)",
+        blocActuel.contains("(173, 82, 65) = #AD5241") && blocActuel.contains("107/255") && blocActuel.contains("(160, 74, 61) = #A04A3D") &&
+        blocActuel.contains("(161, 75, 62) = #A14B3E") && blocActuel.contains("R 150-190") && blocActuel.contains("Classement : ") &&
+        !blocActuel.contains("(10, 120, 230)"))
+    check("bloc VALIDATION : toutes les valeurs viennent de l'instantane de validation (bleu)",
+        blocValidation.contains("(10, 120, 230) = #0A78E6") && blocValidation.contains("(9, 146, 242) = #0992F2") &&
+        blocValidation.contains("R 5-12") && blocValidation.contains("Classement : Bleu") && !blocValidation.contains("(173, 82, 65)"))
+    check("l'explication de chaque bloc est celle de SA valeur affichee",
+        blocActuel.contains(ClassificateurCouleur.formaterExplication(ClassificateurCouleur.expliquer(161, 75, 62))) &&
+        blocValidation.contains(ClassificateurCouleur.formaterExplication(ClassificateurCouleur.expliquer(9, 146, 242))))
+    check("pas de ligne vide parasite en fin de rapport", !rapport.endsWith("\n"))
+
+    // Sans validation ni mesure
+    val sansValidation = RapportMesure.formaterRapport(rouge, null, now)
+    check("sans validation : le dit clairement", sansValidation.contains("aucune depuis l'ouverture de l'appli"), sansValidation.lines().last())
+    val rien = RapportMesure.formaterRapport(null, null, now)
+    check("sans aucune mesure : 'non disponible', pas d'erreur, pas de 'null'", rien.contains("non disponible") && !rien.contains("null"), rien)
+
+    // Age
+    check("age : 0 s", RapportMesure.age(0) == "il y a 0 s")
+    check("age : 119 s reste en secondes", RapportMesure.age(119_000) == "il y a 119 s")
+    check("age : 3 min", RapportMesure.age(200_000) == "il y a 3 min", RapportMesure.age(200_000))
+    check("age : jamais negatif (horloge qui recule)", RapportMesure.age(-5_000) == "il y a 0 s")
 
     println(if (echecs == 0) "\n=> TOUT PASSE" else "\n=> $echecs ECHEC(S)")
     if (echecs > 0) System.exit(1)

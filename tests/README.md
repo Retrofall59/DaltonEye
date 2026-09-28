@@ -33,7 +33,7 @@ java -jar test_expl.jar
   neutres, cas d'écrêtage capteur, etc.), chacun avec une explication de quel bug il a révélé.
   Doivent **toujours** tous passer.
 - **`TestDispersion.kt`** — vérifie que la médiane de la zone reste strictement identique à l'ancienne formule (la dispersion ajoutée au rapport de diagnostic ne change rien à la couleur mesurée) et que les percentiles sont corrects.
-- **`TestExplicationEtMesures.kt`** — vérifie que l'explication du classement (règle appliquée, trois familles les plus proches) reste toujours cohérente avec le classificateur, sur une grille de 140 608 couleurs, et que la mise en forme des mesures brutes du rapport est correcte.
+- **`TestExplicationEtMesures.kt`** — vérifie que l'explication du classement (règle appliquée, trois familles les plus proches) reste toujours cohérente avec le classificateur, sur une grille de 140 608 couleurs, et que le rapport (mesure actuelle + dernière validation, chacune issue d'un instantané unique, avec son âge) est correctement mis en forme.
 - **`nuancier_bambu_201_couleurs.csv`** — les 201 couleurs officielles du nuancier Bambu Lab
   (PLA Basic, Matte, ABS, PETG, gradients, bicolores...), avec la famille DaltonEye jugée
   raisonnable pour chacune. Sert d'outil de diagnostic large : le score de référence est

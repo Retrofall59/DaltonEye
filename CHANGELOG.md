@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.26 (build 27)
+
+**Correction d'un défaut du rapport de diagnostic introduit en v1.25 (aucun changement de classement ni de couleur mesurée).**
+- Le rapport pouvait mélanger des valeurs de deux moments différents : le RGB brut et la dispersion étaient mis à jour avant le test « affichage figé », le RGB corrigé, le RGB affiché et le classement après. Résultat : après un appui long pour figer une pièce, puis l'ouverture des Paramètres, le rapport combinait des valeurs en direct et des valeurs figées, incohérentes entre elles.
+- Désormais, **un seul instantané par image** regroupe toutes les valeurs (brut, corrigé, affiché, dispersion, famille) et n'est remplacé qu'une fois l'image entièrement traitée, jamais pendant un gel. Le rapport lit cet instantané d'un bloc.
+- Le rapport indique **l'âge de la mesure** (« il y a 12 s ») pour savoir si on copie une mesure fraîche.
+- Le rapport contient aussi **la mesure au moment de la dernière validation** (lecture stable, celle qui fait vibrer), à côté de la mesure actuelle : si la pièce est retirée avant de copier, on garde la mesure qui a déclenché la décision.
+- Testé : chaque bloc du rapport ne contient que les valeurs de son propre instantané, même quand la mesure actuelle et la validation diffèrent.
+
 ## v1.25 (build 26)
 
 **Données de diagnostic passives, ajoutées au rapport copié (« Copier les infos de diagnostic »). Aucun changement de comportement : rien à l'écran, aucun seuil, aucun réglage, le classement et la couleur mesurée sont strictement inchangés.**

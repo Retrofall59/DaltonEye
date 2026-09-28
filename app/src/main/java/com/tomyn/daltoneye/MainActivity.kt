@@ -71,11 +71,10 @@ class MainActivity : AppCompatActivity() {
     // Derniere couleur brute captee (avant correction calibration), utilisee quand on appuie sur "Calibrer".
     @Volatile private var derniereCouleurBrute: Triple<Int, Int, Int>? = null
 
-    // Dispersion des pixels de la zone (rapport de diagnostic uniquement : rien a l'ecran, aucun seuil).
-    @Volatile private var derniereDispersion: String = "non disponible"
-    // Dernieres valeurs apres calibration, pour le rapport de diagnostic (aucun effet sur le classement).
-    @Volatile private var dernierCorrigeInstantane: Triple<Int, Int, Int>? = null
-    @Volatile private var dernierCorrigeAffiche: Triple<Int, Int, Int>? = null
+    // Rapport de diagnostic uniquement (rien a l'ecran, aucun seuil, aucun effet sur le classement) :
+    // un SEUL objet par image, remplace d'un bloc, donc toutes les valeurs du rapport viennent de la meme image.
+    @Volatile private var instantane: InstantaneMesure? = null            // derniere image traitee (jamais pendant un gel)
+    @Volatile private var instantaneValidation: InstantaneMesure? = null  // mesure au moment ou la lecture a ete jugee stable
 
     // Figeage temporaire de l'affichage (appui long sur l'ecran), pour lire tranquillement un resultat.
     @Volatile private var affichageFige = false
@@ -135,15 +134,7 @@ class MainActivity : AppCompatActivity() {
             val etat = gestionnaireCalibration.etatPourSauvegarde()
             val intention = android.content.Intent(this, SettingsActivity::class.java).apply {
                 putExtra("dernier_hex", texteHexCapte.text.toString())
-                putExtra("dispersion", derniereDispersion)
-                putExtra("mesures", RapportMesure.formaterMesures(derniereCouleurBrute, dernierCorrigeInstantane, dernierCorrigeAffiche))
-                val affiche = dernierCorrigeAffiche
-                putExtra(
-                    "explication",
-                    if (affiche != null) ClassificateurCouleur.formaterExplication(
-                        ClassificateurCouleur.expliquer(affiche.first, affiche.second, affiche.third)
-                    ) else "non disponible"
-                )
+                putExtra("mesures", RapportMesure.formaterRapport(instantane, instantaneValidation, System.currentTimeMillis()))
                 putExtra("decalageR", etat.decalageR)
                 putExtra("decalageG", etat.decalageG)
                 putExtra("decalageB", etat.decalageB)
@@ -443,7 +434,8 @@ class MainActivity : AppCompatActivity() {
      */
     private fun analyserImage(image: ImageProxy) {
         try {
-            val (r, g, b) = couleurMoyenneZoneCentrale(image)
+            val (couleurBrute, dispersion) = couleurMoyenneZoneCentrale(image)
+            val (r, g, b) = couleurBrute
             derniereCouleurBrute = Triple(r, g, b)
 
             // Affichage fige (appui long) : on garde la derniere couleur brute a jour pour la calibration,
@@ -451,7 +443,6 @@ class MainActivity : AppCompatActivity() {
             if (affichageFige) return
 
             val corrigeInstantane = gestionnaireCalibration.corriger(r, g, b)
-            dernierCorrigeInstantane = corrigeInstantane
 
             // Detecte un changement brusque de scene (nouvelle piece sous le reticule) : si la
             // lecture instantanee s'ecarte trop de la moyenne du tampon, on vide le tampon au lieu
@@ -479,9 +470,10 @@ class MainActivity : AppCompatActivity() {
                 tamponCouleurs.sumOf { it.third } / tamponCouleurs.size
             )
 
-            dernierCorrigeAffiche = corrige
             val famille = ClassificateurCouleur.classifier(corrige.first, corrige.second, corrige.third)
             val sature = corrige.first >= 250 && corrige.second >= 250
+            val mesure = InstantaneMesure(System.currentTimeMillis(), Triple(r, g, b), corrigeInstantane, corrige, famille.nom, dispersion)
+            instantane = mesure
 
             // Suivi de stabilite : vibration courte une seule fois quand la meme famille tient
             // sur plusieurs images d'affilee, pas a chaque frame.
@@ -494,6 +486,7 @@ class MainActivity : AppCompatActivity() {
             }
             if (comptageStabilite >= seuilFramesStable && !dejaVibrePourCetteStabilite) {
                 dejaVibrePourCetteStabilite = true
+                instantaneValidation = mesure
                 runOnUiThread { vibrerCourt() }
             }
 
@@ -515,7 +508,7 @@ class MainActivity : AppCompatActivity() {
     /** Rejette les pixels aberrants (reflet, bord de piece) : mediane plutot que moyenne.
      * Zone CIRCULAIRE, coherente avec le reticule affiche a l'ecran (avant : zone carree,
      * les coins hors du cercle visible influençaient quand meme le calcul). */
-    private fun couleurMoyenneZoneCentrale(image: ImageProxy): Triple<Int, Int, Int> {
+    private fun couleurMoyenneZoneCentrale(image: ImageProxy): Pair<Triple<Int, Int, Int>, String> {
         val largeur = image.width
         val hauteur = image.height
         val planY = image.planes[0]
@@ -549,13 +542,15 @@ class MainActivity : AppCompatActivity() {
             y += pasEchantillon
         }
 
-        if (valeursR.isEmpty()) return Triple(128, 128, 128)
+        if (valeursR.isEmpty()) return Pair(Triple(128, 128, 128), "non disponible")
 
         val canalR = DispersionZone.resumer(valeursR)
         val canalG = DispersionZone.resumer(valeursG)
         val canalB = DispersionZone.resumer(valeursB)
-        derniereDispersion = DispersionZone.formater(canalR, canalG, canalB, valeursR.size)
-        return Triple(canalR.mediane, canalG.mediane, canalB.mediane)
+        return Pair(
+            Triple(canalR.mediane, canalG.mediane, canalB.mediane),
+            DispersionZone.formater(canalR, canalG, canalB, valeursR.size)
+        )
     }
 
     private fun pixelYuvVersRgb(
