@@ -89,6 +89,42 @@ object ClassificateurCouleur {
         return meilleure
     }
 
+    // ------------------------------------------------------------------ Explication du classement (diagnostic)
+
+    /**
+     * Explication d'un classement, pour le rapport de diagnostic UNIQUEMENT (rien a l'ecran).
+     * @param regle la regle speciale appliquee (capteur sature / couleur quasi neutre), ou null si
+     *              le classement s'est fait par simple distance CIEDE2000.
+     * @param plusProches les 3 familles les plus proches par CIEDE2000 (nom, distance), meme quand une
+     *              regle speciale a decide : dans ce cas les distances sont seulement indicatives.
+     */
+    data class Explication(val regle: String?, val gagnant: String, val plusProches: List<Pair<String, Double>>)
+
+    /** Ne modifie pas classifier() : le gagnant est celui de classifier(), les distances sont calculees a cote. */
+    fun expliquer(r: Int, g: Int, b: Int): Explication {
+        val labCapte = versLab(String.format("%02X%02X%02X", r, g, b))
+        val plusProches = familles
+            .map { it.nom to ecart2000(labCapte, versLab(it.hexReference)) }
+            .sortedBy { it.second }
+            .take(3)
+        // Memes conditions, dans le meme ordre, que dans classifier()
+        val regle = when {
+            r >= 250 && g >= 250 -> "capteur sature (R et G >= 250) : classement selon le bleu (B=$b)"
+            maxOf(r, g, b) - minOf(r, g, b) <= 20 -> "couleur quasi neutre (ecart R/V/B <= 20) : classement selon la luminosite moyenne (${(r + g + b) / 3})"
+            else -> null
+        }
+        return Explication(regle, classifier(r, g, b).nom, plusProches)
+    }
+
+    fun formaterExplication(e: Explication): String {
+        val distances = e.plusProches.joinToString(", ") { "${it.first} ${String.format(java.util.Locale.US, "%.1f", it.second)}" }
+        return if (e.regle != null) {
+            "Classement : ${e.gagnant} - regle : ${e.regle}. Distances CIEDE2000 (indicatives, non utilisees) : $distances"
+        } else {
+            "Classement : ${e.gagnant} - par distance CIEDE2000. Trois plus proches : $distances"
+        }
+    }
+
     // ------------------------------------------------------------------ CIEDE2000 (portee depuis EquivalenceBambu.kt)
 
     private fun versLab(hex: String): DoubleArray {

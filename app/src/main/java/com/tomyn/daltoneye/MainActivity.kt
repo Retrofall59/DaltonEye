@@ -73,6 +73,9 @@ class MainActivity : AppCompatActivity() {
 
     // Dispersion des pixels de la zone (rapport de diagnostic uniquement : rien a l'ecran, aucun seuil).
     @Volatile private var derniereDispersion: String = "non disponible"
+    // Dernieres valeurs apres calibration, pour le rapport de diagnostic (aucun effet sur le classement).
+    @Volatile private var dernierCorrigeInstantane: Triple<Int, Int, Int>? = null
+    @Volatile private var dernierCorrigeAffiche: Triple<Int, Int, Int>? = null
 
     // Figeage temporaire de l'affichage (appui long sur l'ecran), pour lire tranquillement un resultat.
     @Volatile private var affichageFige = false
@@ -133,6 +136,14 @@ class MainActivity : AppCompatActivity() {
             val intention = android.content.Intent(this, SettingsActivity::class.java).apply {
                 putExtra("dernier_hex", texteHexCapte.text.toString())
                 putExtra("dispersion", derniereDispersion)
+                putExtra("mesures", RapportMesure.formaterMesures(derniereCouleurBrute, dernierCorrigeInstantane, dernierCorrigeAffiche))
+                val affiche = dernierCorrigeAffiche
+                putExtra(
+                    "explication",
+                    if (affiche != null) ClassificateurCouleur.formaterExplication(
+                        ClassificateurCouleur.expliquer(affiche.first, affiche.second, affiche.third)
+                    ) else "non disponible"
+                )
                 putExtra("decalageR", etat.decalageR)
                 putExtra("decalageG", etat.decalageG)
                 putExtra("decalageB", etat.decalageB)
@@ -440,6 +451,7 @@ class MainActivity : AppCompatActivity() {
             if (affichageFige) return
 
             val corrigeInstantane = gestionnaireCalibration.corriger(r, g, b)
+            dernierCorrigeInstantane = corrigeInstantane
 
             // Detecte un changement brusque de scene (nouvelle piece sous le reticule) : si la
             // lecture instantanee s'ecarte trop de la moyenne du tampon, on vide le tampon au lieu
@@ -467,6 +479,7 @@ class MainActivity : AppCompatActivity() {
                 tamponCouleurs.sumOf { it.third } / tamponCouleurs.size
             )
 
+            dernierCorrigeAffiche = corrige
             val famille = ClassificateurCouleur.classifier(corrige.first, corrige.second, corrige.third)
             val sature = corrige.first >= 250 && corrige.second >= 250
 

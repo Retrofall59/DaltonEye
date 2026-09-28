@@ -18,12 +18,22 @@ kotlinc ../app/src/main/java/com/tomyn/daltoneye/DispersionZone.kt TestDispersio
 java -jar test_disp.jar
 ```
 
+Et pour l'explication du classement et les mesures brutes du rapport de diagnostic :
+
+```
+kotlinc ../app/src/main/java/com/tomyn/daltoneye/ClassificateurCouleur.kt \
+        ../app/src/main/java/com/tomyn/daltoneye/RapportMesure.kt TestExplicationEtMesures.kt \
+        -include-runtime -d test_expl.jar
+java -jar test_expl.jar
+```
+
 ## Contenu
 
 - **`TestsNonRegression.kt`** — les cas réels (pince PCA bleue, bobine Anycubic Purple, gris
   neutres, cas d'écrêtage capteur, etc.), chacun avec une explication de quel bug il a révélé.
   Doivent **toujours** tous passer.
 - **`TestDispersion.kt`** — vérifie que la médiane de la zone reste strictement identique à l'ancienne formule (la dispersion ajoutée au rapport de diagnostic ne change rien à la couleur mesurée) et que les percentiles sont corrects.
+- **`TestExplicationEtMesures.kt`** — vérifie que l'explication du classement (règle appliquée, trois familles les plus proches) reste toujours cohérente avec le classificateur, sur une grille de 140 608 couleurs, et que la mise en forme des mesures brutes du rapport est correcte.
 - **`nuancier_bambu_201_couleurs.csv`** — les 201 couleurs officielles du nuancier Bambu Lab
   (PLA Basic, Matte, ABS, PETG, gradients, bicolores...), avec la famille DaltonEye jugée
   raisonnable pour chacune. Sert d'outil de diagnostic large : le score de référence est

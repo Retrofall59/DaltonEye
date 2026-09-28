@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.25 (build 26)
+
+**Données de diagnostic passives, ajoutées au rapport copié (« Copier les infos de diagnostic »). Aucun changement de comportement : rien à l'écran, aucun seuil, aucun réglage, le classement et la couleur mesurée sont strictement inchangés.**
+- **RGB caméra brut, RGB après calibration, RGB classé et affiché** (avec leurs hex) : permet de savoir si une erreur vient du capteur, de la calibration ou du classement.
+- **Luminosité brute (Y)** de la mesure, pour distinguer un problème de couleur d'un problème de prise de vue (noir qui devient gris, blanc saturé...).
+- **Explication du classement** : les trois familles les plus proches avec leur distance CIEDE2000, ou la règle spéciale appliquée (capteur saturé, couleur quasi neutre) avec les distances à titre indicatif. Permet de voir si une mauvaise classification vient d'une frontière entre familles.
+- Vérification : sur une grille de 140 608 couleurs, l'explication est toujours cohérente avec le classificateur (0 écart). Le calcul de l'explication n'a lieu qu'à l'ouverture des Paramètres, pas à chaque image.
+
 ## v1.24 (build 25)
 
 **Retrait de la famille « Transparent » (14 familles au lieu de 15).**
