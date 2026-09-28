@@ -106,6 +106,8 @@ class SettingsActivity : AppCompatActivity() {
         } catch (e: PackageManager.NameNotFoundException) { "?" }
 
         val dernierHex = intent.getStringExtra("dernier_hex") ?: "non disponible"
+        val dispersion = intent.getStringExtra("dispersion") ?: "non disponible"
+        val tailleZone = GestionnaireParametres.lireTailleReticule(this)
         val decR = intent.getDoubleExtra("decalageR", 0.0)
         val decG = intent.getDoubleExtra("decalageG", 0.0)
         val decB = intent.getDoubleExtra("decalageB", 0.0)
@@ -118,6 +120,8 @@ class SettingsActivity : AppCompatActivity() {
             appendLine("Téléphone : ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
             appendLine("Version appli : $version")
             appendLine("Dernier hex affiché : $dernierHex")
+            appendLine("Zone d'analyse : ${tailleZone.name} (${(tailleZone.fractionImage * 100).toInt()} % de l'image)")
+            appendLine("Dispersion de la zone : $dispersion")
             appendLine("Calibration - décalage (R,G,B) : $decR, $decG, $decB")
             appendLine("Calibration - échelle (R,G,B) : $echR, $echG, $echB")
         }

@@ -71,6 +71,9 @@ class MainActivity : AppCompatActivity() {
     // Derniere couleur brute captee (avant correction calibration), utilisee quand on appuie sur "Calibrer".
     @Volatile private var derniereCouleurBrute: Triple<Int, Int, Int>? = null
 
+    // Dispersion des pixels de la zone (rapport de diagnostic uniquement : rien a l'ecran, aucun seuil).
+    @Volatile private var derniereDispersion: String = "non disponible"
+
     // Figeage temporaire de l'affichage (appui long sur l'ecran), pour lire tranquillement un resultat.
     @Volatile private var affichageFige = false
 
@@ -129,6 +132,7 @@ class MainActivity : AppCompatActivity() {
             val etat = gestionnaireCalibration.etatPourSauvegarde()
             val intention = android.content.Intent(this, SettingsActivity::class.java).apply {
                 putExtra("dernier_hex", texteHexCapte.text.toString())
+                putExtra("dispersion", derniereDispersion)
                 putExtra("decalageR", etat.decalageR)
                 putExtra("decalageG", etat.decalageG)
                 putExtra("decalageB", etat.decalageB)
@@ -534,11 +538,11 @@ class MainActivity : AppCompatActivity() {
 
         if (valeursR.isEmpty()) return Triple(128, 128, 128)
 
-        fun mediane(valeurs: MutableList<Int>): Int {
-            valeurs.sort()
-            return valeurs[valeurs.size / 2]
-        }
-        return Triple(mediane(valeursR), mediane(valeursG), mediane(valeursB))
+        val canalR = DispersionZone.resumer(valeursR)
+        val canalG = DispersionZone.resumer(valeursG)
+        val canalB = DispersionZone.resumer(valeursB)
+        derniereDispersion = DispersionZone.formater(canalR, canalG, canalB, valeursR.size)
+        return Triple(canalR.mediane, canalG.mediane, canalB.mediane)
     }
 
     private fun pixelYuvVersRgb(

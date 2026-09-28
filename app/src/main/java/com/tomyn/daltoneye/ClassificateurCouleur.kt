@@ -34,8 +34,11 @@ object ClassificateurCouleur {
         FamilleCouleur("Marron", "6B3F1D"),
         FamilleCouleur("Noir", "0A0A0A"),
         FamilleCouleur("Blanc", "F5F5F5"),
-        FamilleCouleur("Gris / Argenté", "9A9A9A"),
-        FamilleCouleur("Transparent", "C9C9C9")
+        FamilleCouleur("Gris / Argenté", "9A9A9A")
+        // Pas de famille "Transparent" (retiree en v1.24) : un plastique transparent laisse voir le
+        // fond, la camera lit surtout ce fond et non la piece, donc la couleur seule ne permet pas de
+        // le reconnaitre. Et cette famille absorbait a tort des pastels reels (rose pale, menthe,
+        // bleu ciel, lavande). Les chutes transparentes se trient a l'oeil.
     )
 
     /**

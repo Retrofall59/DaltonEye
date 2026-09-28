@@ -11,18 +11,26 @@ kotlinc ../app/src/main/java/com/tomyn/daltoneye/ClassificateurCouleur.kt TestsN
 java -jar test.jar
 ```
 
+Et pour la dispersion des pixels (DispersionZone) :
+
+```
+kotlinc ../app/src/main/java/com/tomyn/daltoneye/DispersionZone.kt TestDispersion.kt -include-runtime -d test_disp.jar
+java -jar test_disp.jar
+```
+
 ## Contenu
 
 - **`TestsNonRegression.kt`** — les cas réels (pince PCA bleue, bobine Anycubic Purple, gris
   neutres, cas d'écrêtage capteur, etc.), chacun avec une explication de quel bug il a révélé.
   Doivent **toujours** tous passer.
+- **`TestDispersion.kt`** — vérifie que la médiane de la zone reste strictement identique à l'ancienne formule (la dispersion ajoutée au rapport de diagnostic ne change rien à la couleur mesurée) et que les percentiles sont corrects.
 - **`nuancier_bambu_201_couleurs.csv`** — les 201 couleurs officielles du nuancier Bambu Lab
   (PLA Basic, Matte, ABS, PETG, gradients, bicolores...), avec la famille DaltonEye jugée
   raisonnable pour chacune. Sert d'outil de diagnostic large : le score de référence est
-  **154/201**. Une grosse baisse de ce score après un changement est un signal à examiner —
+  **157/201**. Une grosse baisse de ce score après un changement est un signal à examiner —
   mais toutes les "erreurs" restantes ne sont pas forcément de vrais bugs : beaucoup sont des cas
   limites défendables (couleurs très sombres proches du noir, teintes pâles proches du
-  transparent) dans un système à 15 familles volontairement larges.
+  transparent) dans un système à 14 familles volontairement larges.
 
 ## Avant de toucher une référence de couleur
 

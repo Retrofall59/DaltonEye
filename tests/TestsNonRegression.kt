@@ -19,7 +19,7 @@ import java.io.File
  * 2. Le nuancier complet des 201 couleurs officielles Bambu Lab (nuancier_bambu_201_couleurs.csv),
  *    utilise comme outil de diagnostic large - un score qui baisse fortement d'une version a
  *    l'autre est un signal d'alerte, mais toutes les "erreurs" ne sont pas forcement de vrais
- *    bugs (certaines sont des cas limites defendables dans un systeme a 15 familles larges).
+ *    bugs (certaines sont des cas limites defendables dans un systeme a 14 familles larges).
  */
 
 data class CasTest(val r: Int, val g: Int, val b: Int, val attendu: String, val description: String)
@@ -42,8 +42,13 @@ val casReelsValides = listOf(
     CasTest(255, 255, 248, "Blanc", "#FFFFF8, piece creme tres surexposee"),
     CasTest(255, 255, 203, "Beige", "#FFFFCB, piece creme surexposee"),
 
-    // --- Calibration : la cible blanc (240,240,240) ne doit jamais tomber sur Transparent ---
-    CasTest(240, 240, 240, "Blanc", "Cible de calibration blanc (bug corrige en v1.1 : tombait sur Transparent)"),
+    // --- Calibration : la cible blanc (240,240,240) doit toujours etre classee Blanc ---
+    CasTest(240, 240, 240, "Blanc", "Cible de calibration blanc (v1.1 : tombait alors sur l'ancienne famille Transparent)"),
+
+    // --- Famille "Transparent" retiree en v1.24 : ces pastels reels Bambu lui etaient attribues a tort ---
+    CasTest(0x96, 0xDC, 0xB9, "Vert", "Bambu Mint #96DCB9 (etait classe Transparent)"),
+    CasTest(0xA8, 0xC6, 0xEE, "Cyan", "Bambu Baby Blue #A8C6EE (etait classe Transparent)"),
+    CasTest(0xE7, 0xC1, 0xD5, "Rose", "Bambu Cotton Candy #E7C1D5 (etait classe Transparent)"),
 
     // --- Repere de non-regression sur les autres familles (jamais buggees, a garder stables) ---
     CasTest(230, 20, 20, "Rouge", "Rouge franc de reference"),
@@ -61,6 +66,10 @@ val casReelsValides = listOf(
 fun executerCasReels(): Boolean {
     println("=== Cas reels valides (doivent TOUS passer) ===")
     var toutPasse = true
+    // Decision v1.24 : pas de famille "Transparent" (la camera lit le fond a travers la piece)
+    val aTransparent = ClassificateurCouleur.familles.any { it.nom == "Transparent" }
+    println((if (!aTransparent) "[OK  ] " else "[RATE] ") + "aucune famille Transparent (decision v1.24) : ${ClassificateurCouleur.familles.size} familles")
+    if (aTransparent) toutPasse = false
     for (cas in casReelsValides) {
         val f = ClassificateurCouleur.classifier(cas.r, cas.g, cas.b)
         val ok = f.nom == cas.attendu

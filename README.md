@@ -11,7 +11,9 @@ Appli Android pour trier des chutes/ratés d'impression 3D par couleur primaire,
 
 ## Familles de couleur détectées
 
-Rouge, Orange, Jaune, Vert, Cyan, Bleu, Violet, Magenta, Rose, Beige, Marron, Noir, Blanc, Gris / Argenté, Transparent.
+Rouge, Orange, Jaune, Vert, Cyan, Bleu, Violet, Magenta, Rose, Beige, Marron, Noir, Blanc, Gris / Argenté.
+
+Il n'y a volontairement **pas de famille « Transparent »** : un plastique transparent laisse voir le fond à travers, la caméra lit donc surtout ce fond et non la pièce, et la couleur seule ne permet pas de le reconnaître. Les chutes transparentes se trient à l'œil.
 
 Volontairement peu nombreuses et larges (pas de nuances fines type "rouge bordeaux" vs "rouge vif") : l'objectif est un tri fiable par couleur primaire, pas une identification exacte de teinte. Deux nuances proches d'une même famille (ex. noir profond et noir mat) sont classées ensemble, ce qui est le comportement voulu.
 

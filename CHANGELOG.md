@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.24 (build 25)
+
+**Retrait de la famille « Transparent » (14 familles au lieu de 15).**
+- Depuis la règle des couleurs quasi neutres (v1.12), une chute claire ou transparente ne pouvait plus être classée « Transparent » (0 sur 5 376 couleurs quasi neutres testées), et cette famille n'était atteinte que par des couleurs qui n'avaient rien de transparent : 7 couleurs réelles du nuancier Bambu (Milky Pink, Mint, Baby Blue, Ice Blue, Lavender, Translucent Pink, Cotton Candy) lui étaient attribuées à tort.
+- De toute façon, un plastique transparent laisse voir le fond : la caméra lit surtout le fond, pas la pièce. Les chutes transparentes se trient à l'œil.
+- Effet mesuré sur le nuancier des 201 couleurs Bambu : score 154 → 157, et aucune autre couleur ne change. Sur les 7 pastels concernés, 3 retrouvent leur bonne famille (Mint → Vert, Baby Blue → Cyan, Cotton Candy → Rose) et 4, les plus pâles, tombent en Blanc ou Gris (Milky Pink, Ice Blue, Translucent Pink → Blanc ; Lavender → Gris). Ce sont des cas limites d'un système à 14 familles larges.
+
+**Ajout au rapport de diagnostic copié (aucun effet visible, aucun seuil, aucun réglage) :**
+- Taille de la zone d'analyse et **dispersion des pixels** de la zone (écart entre le 10ᵉ et le 90ᵉ centile de chaque canal R, G, B, valeurs brutes, avec le nombre de pixels). Objectif : quand une pièce est mal classée, voir si la zone était homogène (pièce multicolore, reflets, texture, fond qui déborde) au lieu de deviner.
+- La couleur mesurée est strictement inchangée (vérifié : médiane identique à l'ancienne formule sur 2 000 listes aléatoires).
+
 ## v1.23 (build 24)
 
 **Correctif du lissage introduit en v1.22 :**
